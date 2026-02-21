@@ -1,0 +1,419 @@
+%% sintaxismark.sty  v0.6.17 (2025-10-05)
+%% CHANGE: Increase default tagy for tagbelow labels (global and in presets)
+%% CHANGE v0.6.18: Render ALL labels/tags in small caps via \textsc{}
+%% Previous header: v0.6.15
+%% + \NP, \NA, \NAD ; + más separación label–línea en openbox (defaults y presets)
+\NeedsTeXFormat{LaTeX2e}
+[P25/10/05 v0.6.18 increased default tagy for tagbelow add MI/CAg/... + MG/Ap/MF/IPCR/Incl tags]
+
+\newcommand*\syn@optschema{} 
+\DeclareOption{docencia}{\renewcommand*\syn@optschema{docencia}}
+\DeclareOption{impresion}{\renewcommand*\syn@optschema{impresion}}
+\DeclareOption{diapositivas}{\renewcommand*\syn@optschema{diapositivas}}
+\DeclareOption{publicacion}{\renewcommand*\syn@optschema{publicacion}}
+\ProcessOptions\relax
+
+\RequirePackage{xparse}
+\RequirePackage{tikz}
+\usetikzlibrary{calc,arrows.meta}
+\RequirePackage{xcolor}
+\RequirePackage{expl3}
+
+%% ---------- Keys ----------
+\pgfkeys{/sintaxis/.is family,/sintaxis,
+  color/.store in=\syn@color,      color=black,
+  liney/.store in=\syn@liney,      liney=1ex,
+  linegap/.store in=\syn@linegap,  linegap=5.5pt,
+  labsep/.store in=\syn@labsep,    labsep=1ex,
+  % liney/.store in=\syn@liney,      liney=2.2ex,
+  % linegap/.store in=\syn@linegap,  linegap=0pt,
+  % labsep/.store in=\syn@labsep,    labsep=0.8ex,
+  linew/.store in=\syn@linew,      linew=0.6pt,
+  boxd/.store in=\syn@boxd,        boxd=3ex,
+  % AUMENTADO el default (antes 0.7ex):
+  boxsep/.store in=\syn@boxsep,    boxsep=1.0ex,
+  labelsep/.code       = {\syn@labelsep=#1\relax},
+  labelsepboxes/.code  = {\syn@labelsepboxes=#1\relax},
+  nestedgap/.store in=\syn@nestedgap, nestedgap=0.3ex,
+  labheight/.store in=\syn@labheight, labheight=1.1ex,
+  tagy/.store in=\syn@tagy,        tagy=1.8ex,
+  tagx/.store in=\syn@tagx, tagx=0pt,
+  underw/.store in=\syn@underw,    underw=0.8pt,
+  labelalign/.store in=\syn@labelalign, labelalign=center,
+  autogap/.store in=\syn@autogap,  autogap=0.6ex,
+  debugcolor/.store in=\syn@debugcolor, debugcolor=gray!30,
+  spandebugcolor/.store in=\syn@spandebugcolor, spandebugcolor=orange!25,
+  leftend/.is if = syn@leftend,
+  rightend/.is if = syn@rightend,
+  autodepth/.is if = syn@autodepth,
+  debugboxes/.is if = syn@debugboxes,
+  debugspan/.is if = syn@debugspan,
+  leftarrow/.is if = syn@leftarrow,
+  rightarrow/.is if = syn@rightarrow,
+  arrowlen/.store in=\syn@arrowlen, arrowlen=1.3ex,
+  arrowtip/.store in=\syn@arrowtip, arrowtip=Latex,
+  arrowscale/.store in=\syn@arrowscale, arrowscale=1,
+  arrowinset/.store in=\syn@arrowinset, arrowinset=0pt
+}
+
+
+
+
+
+%% Booleans defaults
+\newif\ifsyn@leftend     \syn@leftendtrue
+\newif\ifsyn@rightend    \syn@rightendtrue
+\newif\ifsyn@autodepth   \syn@autodepthtrue
+\newif\ifsyn@debugboxes  \syn@debugboxesfalse
+\newif\ifsyn@debugspan   \syn@debugspanfalse
+\newif\ifsyn@leftarrow   \syn@leftarrowfalse
+\newif\ifsyn@rightarrow  \syn@rightarrowfalse
+
+\newdimen\syn@childmaxd
+\newdimen\syn@finald
+\newdimen\syn@labelsep      \syn@labelsep=-1sp
+\newdimen\syn@labelsepboxes \syn@labelsepboxes=-1sp
+\newdimen\syn@uselabelsep
+\newdimen\syn@labheightd
+
+%% hook vacío por defecto
+\expandafter\ifx\csname syn@reportdepth\endcsname\relax
+  \expandafter\def\csname syn@reportdepth\endcsname#1{}%
+\fi
+
+%% ---------- Presets y wrapper ----------
+\ExplSyntaxOn
+\cs_new_protected:Npn \syn_apply_schema:n #1
+  {
+    \str_case:nnF {#1}
+      {
+        % +0.2ex vs. versión anterior
+        {docencia}{ \pgfkeys{/sintaxis/linew=0.9pt,/sintaxis/liney=2.4ex,/sintaxis/linegap=0.6ex,
+                              /sintaxis/labsep=1.0ex,/sintaxis/boxd=3.2ex,/sintaxis/boxsep=1.0ex,
+                              /sintaxis/tagy=1.8ex,/sintaxis/underw=1.0pt} }
+        % +0.2ex
+        {impresion}{ \pgfkeys{/sintaxis/linew=0.5pt,/sintaxis/liney=1.8ex,/sintaxis/linegap=0pt,
+                              /sintaxis/labsep=0.6ex,/sintaxis/boxd=2.6ex,/sintaxis/boxsep=0.8ex,
+                              /sintaxis/tagy=1.6ex,/sintaxis/underw=0.7pt} }
+        % +0.2ex
+        {diapositivas}{ \pgfkeys{/sintaxis/linew=1.2pt,/sintaxis/liney=3.0ex,/sintaxis/linegap=0.8ex,
+                                 /sintaxis/labsep=1.2ex,/sintaxis/boxd=3.6ex,/sintaxis/boxsep=1.4ex,
+                                 /sintaxis/tagy=2.0ex,/sintaxis/underw=1.2pt,
+                                 /sintaxis/arrowlen=1.8ex,/sintaxis/arrowscale=1.25,
+                                 /sintaxis/labelsepboxes=1.6ex,/sintaxis/nestedgap=0.8ex,
+                                 /sintaxis/labheight=1.2ex} }
+        % +0.2ex aprox. (0.65→0.85)
+        {publicacion}{ \pgfkeys{/sintaxis/linew=0.48pt,/sintaxis/liney=2.0ex,/sintaxis/linegap=0.3ex,
+                                 /sintaxis/labsep=0.7ex,/sintaxis/boxd=2.8ex,/sintaxis/boxsep=0.85ex,
+                                 /sintaxis/tagy=1.65ex,/sintaxis/underw=0.65pt,
+                                 /sintaxis/arrowlen=1.2ex,/sintaxis/arrowscale=1.0,
+                                 /sintaxis/labelsepboxes=0.9ex,/sintaxis/nestedgap=0.45ex,
+                                 /sintaxis/labheight=1.0ex} }
+      }{ }
+  }
+\NewDocumentCommand{\setsintaxisschema}{m}{ \syn_apply_schema:n {#1} }
+\ExplSyntaxOff
+
+\AtBeginDocument{%
+  \ifx\syn@optschema\@empty\else
+    \setsintaxisschema{\syn@optschema}%
+  \fi
+}
+
+\newcounter{syn@id}
+
+%% helpers
+\NewDocumentCommand{\syn@start}{m}{\tikz[remember picture,baseline=(#1.base)]\node[inner sep=0pt,outer sep=0pt](#1){};}
+\NewDocumentCommand{\syn@end}{m}{\tikz[remember picture,baseline=(#1.base)]\node[inner sep=0pt,outer sep=0pt](#1){};}
+
+%% -------- openbox --------
+\NewDocumentCommand{\openbox}{O{} m m}{%
+  \begingroup\pgfkeys{/sintaxis,#1}%
+  \let\syn@reportdepth@parent=\syn@reportdepth
+  \syn@childmaxd=0pt
+  \def\syn@reportdepth##1{\ifdim ##1>\syn@childmaxd \global\syn@childmaxd=##1\fi}%
+  \stepcounter{syn@id}\edef\A{bxA\arabic{syn@id}}\edef\B{bxB\arabic{syn@id}}%
+  \syn@start{\A}#3\syn@end{\B}%
+  \syn@finald=\syn@boxd
+  \ifsyn@autodepth
+    \ifdim \syn@childmaxd>0pt
+      \advance\syn@childmaxd by \syn@autogap
+      \advance\syn@childmaxd by \syn@nestedgap
+      \ifdim \syn@childmaxd>\syn@finald \syn@finald=\syn@childmaxd\fi
+    \fi
+  \fi
+  \syn@uselabelsep=\syn@boxsep
+  \ifdim \syn@labelsepboxes> -0.5sp \syn@uselabelsep=\syn@labelsepboxes \fi
+  \ifdim \syn@labelsep> -0.5sp \syn@uselabelsep=\syn@labelsep \fi
+  \tikz[remember picture,overlay]{%
+    \coordinate(L)at(\A.south west);\coordinate(R)at(\B.south east);
+    \draw[\syn@color,line width=\syn@linew] (L) -- ($(L)-(0,\syn@finald)$);
+    \draw[\syn@color,line width=\syn@linew] (R) -- ($(R)-(0,\syn@finald)$);
+    \draw[\syn@color,line width=\syn@linew] ($(L)-(0,\syn@finald)$) -- ($(R)-(0,\syn@finald)$);
+    \coordinate (M) at ($ (L)!0.5!(R) $);
+    \coordinate (P) at (M);
+    \def\syn@cmp{left}\ifx\syn@labelalign\syn@cmp \coordinate (P) at (L);\else
+      \def\syn@cmp{right}\ifx\syn@labelalign\syn@cmp \coordinate (P) at (R);\else
+        \coordinate (P) at (M);
+      \fi
+    \fi
+    \node[text=\syn@color] at ($ (P) -(0,\syn@finald+\syn@uselabelsep) $) {\footnotesize \textsc{#2}};
+  }%
+  \syn@labheightd=\syn@labheight
+  \begingroup
+    \expandafter\ifx\csname syn@reportdepth@parent\endcsname\relax\else
+      \edef\syn@tmpd{\the\dimexpr \syn@finald + \syn@uselabelsep + \syn@labheightd \relax}%
+      \expandafter\syn@reportdepth@parent\expandafter{\syn@tmpd}%
+    \fi
+  \endgroup
+  \endgroup
+}
+
+%% -------- spanline --------
+\NewDocumentCommand{\spanline}{O{} m m}{%
+  \begingroup\pgfkeys{/sintaxis,#1}%
+  \stepcounter{syn@id}\edef\A{spA\arabic{syn@id}}\edef\B{spB\arabic{syn@id}}%
+  \syn@start{\A}#3\syn@end{\B}%
+  \tikz[remember picture,overlay]{%
+    \coordinate(L)at(\A.north west);\coordinate(R)at(\B.north east);
+    \def\Ybase{\syn@linegap}
+    \def\Ytop{\dimexpr \syn@linegap+\syn@liney \relax}
+    \edef\syn@tipname{\syn@arrowtip}
+    \edef\syn@commonopts{length=\syn@arrowlen,scale=\syn@arrowscale,inset=\syn@arrowinset}
+    \edef\syn@arrleft{{\syn@tipname[\syn@commonopts]}-}
+    \edef\syn@arrright{-{\syn@tipname[\syn@commonopts]}}
+    \edef\syn@arrboth{{\syn@tipname[\syn@commonopts]}-{\syn@tipname[\syn@commonopts]}}
+    \def\syn@arrowstyle{-}
+    \ifsyn@leftarrow
+      \ifsyn@rightarrow \edef\syn@arrowstyle{\syn@arrboth}\else \edef\syn@arrowstyle{\syn@arrleft}\fi
+    \else
+      \ifsyn@rightarrow \edef\syn@arrowstyle{\syn@arrright}\fi
+    \fi
+    \draw[\syn@color,line width=\syn@linew,\syn@arrowstyle] ($(L)+(0,\Ytop)$) -- ($(R)+(0,\Ytop)$);
+    \ifsyn@leftend  \draw[\syn@color,line width=\syn@linew] ($(L)+(0,\Ybase)$) -- ($(L)+(0,\Ytop)$);\fi
+    \ifsyn@rightend \draw[\syn@color,line width=\syn@linew] ($(R)+(0,\Ybase)$) -- ($(R)+(0,\Ytop)$);\fi
+    \node[text=\syn@color] at ($(L)!0.5!(R)+(0,\Ytop+\syn@labsep)$){\footnotesize \textsc{#2}};
+  }\endgroup
+}
+
+%% -------- tags / underline / shortcuts / env --------
+\NewDocumentCommand{\tagabove}{O{} m m}{\begingroup\pgfkeys{/sintaxis,#1}\stepcounter{syn@id}\edef\U{taA\arabic{syn@id}}\edef\V{taB\arabic{syn@id}}\syn@start{\U}#3\syn@end{\V}\tikz[remember picture,overlay]{\coordinate(S)at(\U.north west);\coordinate(E)at(\V.north east);\node[text=\syn@color] at ($(S)!0.5!(E)+(0,\syn@tagy)$) {\scriptsize \textsc{#2}};}\endgroup}
+ \NewDocumentCommand{\tagbelow}{O{} m m}{\begingroup\pgfkeys{/sintaxis,#1}\stepcounter{syn@id}\edef\U{tbA\arabic{syn@id}}\edef\V{tbB\arabic{syn@id}}\syn@start{\U}#3\syn@end{\V}\tikz[remember picture,overlay]{\coordinate(S)at(\U.south west);\coordinate(E)at(\V.south east);\node[text=\syn@color] at ($(S)!0.5!(E)+(\syn@tagx,-\syn@tagy)$) {\scriptsize \textsc{#2}};}\endgroup}
+%\NewDocumentCommand{\tagbelow}{O{} m m}{\begingroup\pgfkeys{/sintaxis,#1}\stepcounter{syn@id}\edef\U{tbA\arabic{syn@id}}\edef\V{tbB\arabic{syn@id}}\syn@start{\U}#3\syn@end{\V}\tikz[remember picture,overlay]{\coordinate(S)at(\U.south west);\coordinate(E)at(\V.south east);\node[text=\syn@color] at ($(S)!0.7!(E)-(0,\syn@tagy)$) {\scriptsize \textsc{#2}};}\endgroup}
+\NewDocumentCommand{\synul}{O{} m}{\begingroup\pgfkeys{/sintaxis,#1}\stepcounter{syn@id}\edef\U{ulA\arabic{syn@id}}\edef\V{ulB\arabic{syn@id}}\syn@start{\U}#2\syn@end{\V}\tikz[remember picture,overlay]{\coordinate(S)at(\U.south west);\coordinate(E)at(\V.south east);\draw[\syn@color,line width=\syn@underw] ($(S)-(0,0.55ex)$) -- ($(E)-(0,0.55ex)$);}\endgroup}
+
+
+\NewDocumentCommand{\SES}{O{} m}{\spanline[#1]{\textsc{ses}}{#2}}
+\NewDocumentCommand{\ST}{O{} m}{\spanline[#1]{\textsc{st}}{#2}}
+\NewDocumentCommand{\SEC}{O{} m}{\spanline[#1]{\textsc{sec}}{#2}}
+\NewDocumentCommand{\PVS}{O{} m}{\spanline[#1]{\textsc{pvs}}{#2}}
+\NewDocumentCommand{\PVC}{O{} m}{\spanline[#1]{\textsc{pvc}}{#2}}
+\NewDocumentCommand{\OS}{O{} m}{\spanline[#1]{\textsc{os}}{#2}}
+\NewDocumentCommand{\OD}{O{} m}{\openbox[#1]{\textsc{od}}{#2}}
+\NewDocumentCommand{\OI}{O{} m}{\openbox[#1]{\textsc{oi}}{#2}}
+\NewDocumentCommand{\CCL}{O{} m}{\openbox[#1]{\textsc{ccl}}{#2}}
+\NewDocumentCommand{\COMP}{O{} m}{\openbox[#1]{\textsc{comp}}{#2}}
+\NewDocumentCommand{\MD}{O{} m}{\tagbelow[tagx=
+0.5ex,#1]{md}{#2}}
+\NewDocumentCommand{\N}{O{} m}{\tagbelow[#1]{n}{#2}}
+\NewDocumentCommand{\NN}{O{} m}{\tagbelow[#1]{nn}{\synul[#1]{#2}}}
+\NewDocumentCommand{\NV}{O{} m}{\tagbelow[#1]{nv}{\synul[#1]{#2}}}
+% --- NUEVOS atajos:
+\NewDocumentCommand{\NP}{O{} m}{\tagbelow[#1]{np}{#2}}
+\NewDocumentCommand{\NA}{O{} m}{\tagbelow[#1]{na}{#2}}
+\NewDocumentCommand{\NAD}{O{} m}{\tagbelow[#1]{nadv}{#2}}
+
+\NewDocumentEnvironment{oracion}{O{}}{\par\vspace{0.6\baselineskip}\noindent\begingroup}{\par\endgroup\vspace{0.4\baselineskip}}
+
+
+% ===== v0.6.16 additions start =====
+% === New Openbox-based syntactic function commands (v0.6.16) ===
+% Each command mirrors the interface of \openbox: optional keyval [#1], content {#2}.
+\NewDocumentCommand{\MI}{O{} m}{\openbox[#1]{mi}{#2}}
+\NewDocumentCommand{\CAg}{O{} m}{\openbox[#1]{cag}{#2}}
+\NewDocumentCommand{\CREG}{O{} m}{\openbox[#1]{creg}{#2}}
+\NewDocumentCommand{\CSim}{O{} m}{\openbox[#1]{csim}{#2}}
+\NewDocumentCommand{\CL}{O{} m}{\openbox[#1]{cl}{#2}}
+\NewDocumentCommand{\CM}{O{} m}{\openbox[#1]{cm}{#2}}
+\NewDocumentCommand{\PSO}{O{} m}{\openbox[#1]{pso}{#2}}
+\NewDocumentCommand{\PSNO}{O{} m}{\openbox[#1]{psno}{#2}}
+\NewDocumentCommand{\PONO}{O{} m}{\openbox[#1]{pono}{#2}}
+\NewDocumentCommand{\ACT}{O{} m}{\openbox[#1]{act}{#2}}
+\NewDocumentCommand{\ACL}{O{} m}{\openbox[#1]{acl}{#2}}
+\NewDocumentCommand{\ACM}{O{} m}{\openbox[#1]{acm}{#2}}
+\NewDocumentCommand{\ACF}{O{} m}{\openbox[#1]{acf}{#2}}
+\NewDocumentCommand{\ACC}{O{} m}{\openbox[#1]{acc}{#2}}
+\NewDocumentCommand{\ACCant}{O{} m}{\openbox[#1]{accant}{#2}}
+\NewDocumentCommand{\ACI}{O{} m}{\openbox[#1]{acinst}{#2}}
+\NewDocumentCommand{\ACFin}{O{} m}{\openbox[#1]{acfin}{#2}}
+
+% === New tags analogous to \NN (below-tag) and \NV (underline) ===
+% -- Below-tag (like \NN): prints the label below the span
+\NewDocumentCommand{\MG}{O{} m}{\tagbelow[#1]{mg}{#2}}
+\NewDocumentCommand{\Ap}{O{} m}{\tagbelow[#1]{ap}{#2}}
+\NewDocumentCommand{\MF}{O{} m}{\tagbelow[tagx=
+0.5ex,#1]{mf}{#2}}
+\NewDocumentCommand{\IPCR}{O{} m}{\tagbelow[#1]{ipcr}{#2}}
+\NewDocumentCommand{\Incl}{O{} m}{\tagbelow[#1]{incl}{#2}}
+
+\NewDocumentCommand{\MGV}{O{} m}{\tagbelow[#1]{mg}{\synul[#1]{#2}}}
+\NewDocumentCommand{\ApV}{O{} m}{\tagbelow[#1]{ap}{\synul[#1]{#2}}}
+\NewDocumentCommand{\MFV}{O{} m}{\tagbelow[#1]{mf}{\synul[#1]{#2}}}
+\NewDocumentCommand{\IPCRV}{O{} m}{\tagbelow[#1]{ipcr}{\synul[#1]{#2}}}
+\NewDocumentCommand{\InclV}{O{} m}{\tagbelow[#1]{incl}{\synul[#1]{#2}}}
+
+% ===== v0.6.16 additions end =====
+
+
+
+
+
+% ---- Auto-reserva vertical para evitar solapamientos con gb4e (wrap por renglón)
+\makeatletter
+% helpers: reservar "arriba" (altura) y "abajo" (profundidad)
+\newcommand*\syn@reserveabove[1]{%
+  \leavevmode\vrule height #1 depth 0pt width 0pt\relax}
+\newcommand*\syn@reservebelow[1]{%
+  \vadjust{\kern #1}} % inserta espacio por debajo de la línea actual
+
+% --- REDEFINICIÓN con reserva para \openbox (lo dibujado va DEBAJO del renglón)
+\RenewDocumentCommand{\openbox}{O{} m m}{%
+  \begingroup\pgfkeys{/sintaxis,#1}%
+  \let\syn@reportdepth@parent=\syn@reportdepth
+  \syn@childmaxd=0pt
+  \def\syn@reportdepth##1{\ifdim ##1>\syn@childmaxd \global\syn@childmaxd=##1\fi}%
+  \stepcounter{syn@id}\edef\A{bxA\arabic{syn@id}}\edef\B{bxB\arabic{syn@id}}%
+  \syn@start{\A}#3\syn@end{\B}%
+  \syn@finald=\syn@boxd
+  \ifsyn@autodepth
+    \ifdim \syn@childmaxd>0pt
+      \advance\syn@childmaxd by \syn@autogap
+      \advance\syn@childmaxd by \syn@nestedgap
+      \ifdim \syn@childmaxd>\syn@finald \syn@finald=\syn@childmaxd\fi
+    \fi
+  \fi
+  \syn@uselabelsep=\syn@boxsep
+  \ifdim \syn@labelsepboxes> -0.5sp \syn@uselabelsep=\syn@labelsepboxes \fi
+  \ifdim \syn@labelsep> -0.5sp \syn@uselabelsep=\syn@labelsep \fi
+  % ---- RESERVA: todo lo que cuelga por debajo (+ etiqueta)
+  \syn@labheightd=\syn@labheight
+  \edef\syn@needbelow{\the\dimexpr \syn@finald + \syn@uselabelsep + \syn@labheightd \relax}%
+  \syn@reservebelow{\syn@needbelow}%
+  % ---- Dibujo
+  \tikz[remember picture,overlay]{%
+    \coordinate(L)at(\A.south west);\coordinate(R)at(\B.south east);
+    \draw[\syn@color,line width=\syn@linew] (L) -- ($(L)-(0,\syn@finald)$);
+    \draw[\syn@color,line width=\syn@linew] (R) -- ($(R)-(0,\syn@finald)$);
+    \draw[\syn@color,line width=\syn@linew] ($(L)-(0,\syn@finald)$) -- ($(R)-(0,\syn@finald)$);
+    \coordinate (M) at ($ (L)!0.5!(R) $);
+    \coordinate (P) at (M);
+    \def\syn@cmp{left}\ifx\syn@labelalign\syn@cmp \coordinate (P) at (L);\else
+      \def\syn@cmp{right}\ifx\syn@labelalign\syn@cmp \coordinate (P) at (R);\else
+        \coordinate (P) at (M);\fi\fi
+    \node[text=\syn@color] at ($ (P) -(0,\syn@finald+\syn@uselabelsep) $) {\footnotesize \textsc{#2}};
+  }%
+  % encadenado de profundidad para cajas anidadas
+  \begingroup
+    \expandafter\ifx\csname syn@reportdepth@parent\endcsname\relax\else
+      \expandafter\syn@reportdepth@parent\expandafter{\syn@needbelow}%
+    \fi
+  \endgroup
+  \endgroup
+}
+
+% --- REDEFINICIÓN con reserva para \spanline (lo dibujado va ARRIBA del renglón)
+\RenewDocumentCommand{\spanline}{O{} m m}{%
+  \begingroup\pgfkeys{/sintaxis,#1}%
+  \stepcounter{syn@id}\edef\A{spA\arabic{syn@id}}\edef\B{spB\arabic{syn@id}}%
+  \syn@start{\A}#3\syn@end{\B}%
+  % altura necesaria: línea+gap + separación de etiqueta + altura de etiqueta
+  \edef\syn@Ytop{\the\dimexpr \syn@linegap+\syn@liney \relax}%
+  \syn@labheightd=\syn@labheight
+  \edef\syn@needabove{\the\dimexpr \syn@Ytop + \syn@labsep + \syn@labheightd \relax}%
+  \syn@reserveabove{\syn@needabove}%
+  % dibujo
+  \tikz[remember picture,overlay]{%
+    \coordinate(L)at(\A.north west);\coordinate(R)at(\B.north east);
+    \edef\Ytop{\syn@Ytop}%
+    \def\Ybase{\syn@linegap}
+    \edef\syn@tipname{\syn@arrowtip}
+    \edef\syn@commonopts{length=\syn@arrowlen,scale=\syn@arrowscale,inset=\syn@arrowinset}
+    \edef\syn@arrleft{{\syn@tipname[\syn@commonopts]}-}
+    \edef\syn@arrright{-{\syn@tipname[\syn@commonopts]}}
+    \edef\syn@arrboth{{\syn@tipname[\syn@commonopts]}-{\syn@tipname[\syn@commonopts]}}
+    \def\syn@arrowstyle{-}
+    \ifsyn@leftarrow
+      \ifsyn@rightarrow \edef\syn@arrowstyle{\syn@arrboth}\else \edef\syn@arrowstyle{\syn@arrleft}\fi
+    \else
+      \ifsyn@rightarrow \edef\syn@arrowstyle{\syn@arrright}\fi
+    \fi
+    \draw[\syn@color,line width=\syn@linew,\syn@arrowstyle] ($(L)+(0,\Ytop)$) -- ($(R)+(0,\Ytop)$);
+    \ifsyn@leftend  \draw[\syn@color,line width=\syn@linew] ($(L)+(0,\Ybase)$) -- ($(L)+(0,\Ytop)$);\fi
+    \ifsyn@rightend \draw[\syn@color,line width=\syn@linew] ($(R)+(0,\Ybase)$) -- ($(R)+(0,\Ytop)$);\fi
+    \node[text=\syn@color] at ($(L)!0.5!(R)+(0,\Ytop+\syn@labsep)$){\footnotesize \textsc{#2}};
+  }\endgroup
+}
+\makeatother
+
+
+% ======= MODO COMPACTO EXTREMO: recorte duro de la reserva =======
+\makeatletter
+% Reserva mínima fija (ajustá si querés un pelín más: 0.25ex, 0.3ex, etc.)
+\renewcommand*\syn@reservebelow[1]{\vadjust{\kern 4.5ex}}
+\renewcommand*\syn@reserveabove[1]{\leavevmode\vrule height 4ex depth 0pt width 0pt\relax}
+\makeatother
+% ================================================================
+
+
+%% -------------------------------------------------------------
+%% v0.6.19 — soporte básico para oraciones que se extienden a 2+ renglones
+%% Idea: permitir que el contenido del ejemplo se "envuelva" (wrap) sin romper
+%% los spans de análisis (\openbox, \spanline, etc.).
+%%
+%% 1) \SMlinewrap{<contenido>} envuelve el contenido en un contenedor de ancho \linewidth
+%%    que admite cortes de línea. Úselo dentro de \ex ... para ejemplos largos.
+%% 2) \openboxNB (No Break) es una variante que evita que el texto analizado
+%%    quede partido entre renglones. Útil para que las líneas y etiquetas no se
+%%    "inclinen" cuando el span cruza un salto.
+%%
+%% Ejemplo de uso (gb4e):
+%% \begin{exe}
+%% \ex \SMlinewrap{El \openboxNB{MI}{departamento de unos monoblocks deteriorados de tres pisos de color bordó} quedaba en la planta baja.}
+%% \end{exe}
+%% -------------------------------------------------------------
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%% LINE WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\RequirePackage{varwidth}
+
+% Contenedor que permite el salto de línea hasta \linewidth
+\newcommand{\SMlinewrap}[1]{%
+  \noindent\begin{varwidth}{\linewidth}#1\end{varwidth}%
+}
+
+% Variante "no-break" para \openbox: fuerza a que el contenido no se parta
+\NewDocumentCommand{\openboxNB}{O{} m m}{%
+  \openbox[#1]{#2}{\mbox{#3}}%
+}
+
+% Variante "no-break" para \spanline (opcional, por simetría)
+\NewDocumentCommand{\spanlineNB}{O{} m m}{%
+  \spanline[#1]{#2}{\mbox{#3}}%
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
+
+% Nota técnica:
+% Si un \openbox normal (no-NB) cruza un salto de línea, los anclajes de inicio
+% y fin quedan en líneas distintas y la línea superior del "openbox" podría
+% resultar ligeramente inclinada. Para evitarlo, use \openboxNB para spans largos.
+
+% --- Ajuste global del espacio vertical entre análisis (v0.6.19b)
+
+
+
+
+
+
