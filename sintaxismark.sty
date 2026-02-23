@@ -216,9 +216,20 @@
   % ---- Dibujo
   \tikz[remember picture,overlay]{%
     \coordinate(L)at(\A.south west);\coordinate(R)at(\B.south east);
-    \draw[\syn@color,line width=\syn@linew] (L) -- ($(L)-(0,\syn@finald)$);
-    \draw[\syn@color,line width=\syn@linew] (R) -- ($(R)-(0,\syn@finald)$);
-    \draw[\syn@color,line width=\syn@linew] ($(L)-(0,\syn@finald)$) -- ($(R)-(0,\syn@finald)$);
+    \edef\syn@tipname{\syn@arrowtip}
+    \edef\syn@commonopts{length=\syn@arrowlen,scale=\syn@arrowscale,inset=\syn@arrowinset}
+    \edef\syn@arrleft{{\syn@tipname[\syn@commonopts]}-}
+    \edef\syn@arrright{-{\syn@tipname[\syn@commonopts]}}
+    \edef\syn@arrboth{{\syn@tipname[\syn@commonopts]}-{\syn@tipname[\syn@commonopts]}}
+    \def\syn@arrowstyle{-}
+    \ifsyn@leftarrow
+      \ifsyn@rightarrow \edef\syn@arrowstyle{\syn@arrboth}\else \edef\syn@arrowstyle{\syn@arrleft}\fi
+    \else
+      \ifsyn@rightarrow \edef\syn@arrowstyle{\syn@arrright}\fi
+    \fi
+    \ifsyn@leftend  \draw[\syn@color,line width=\syn@linew] (L) -- ($(L)-(0,\syn@finald)$);\fi
+    \ifsyn@rightend \draw[\syn@color,line width=\syn@linew] (R) -- ($(R)-(0,\syn@finald)$);\fi
+    \draw[\syn@color,line width=\syn@linew,\syn@arrowstyle] ($(L)-(0,\syn@finald)$) -- ($(R)-(0,\syn@finald)$);
     \coordinate (M) at ($ (L)!0.5!(R) $);
     \coordinate (P) at (M);
     \def\syn@cmp{left}\ifx\syn@labelalign\syn@cmp \coordinate (P) at (L);\else
