@@ -192,7 +192,9 @@
 
 % --- \openbox (lo dibujado va DEBAJO del renglón)
 \NewDocumentCommand{\openbox}{O{} m m}{%
-  \begingroup\pgfkeys{/sintaxis,#1}%
+  \begingroup
+  \syn@leftendtrue\syn@rightendtrue\syn@leftarrowfalse\syn@rightarrowfalse
+  \pgfkeys{/sintaxis,#1}%
   \let\syn@reportdepth@parent=\syn@reportdepth
   \syn@childmaxd=0pt
   \def\syn@reportdepth##1{\ifdim ##1>\syn@childmaxd \global\syn@childmaxd=##1\fi}%
@@ -248,7 +250,9 @@
 
 % --- \spanline (lo dibujado va ARRIBA del renglón)
 \NewDocumentCommand{\spanline}{O{} m m}{%
-  \begingroup\pgfkeys{/sintaxis,#1}%
+  \begingroup
+  \syn@leftendtrue\syn@rightendtrue\syn@leftarrowfalse\syn@rightarrowfalse
+  \pgfkeys{/sintaxis,#1}%
   \stepcounter{syn@id}\edef\A{spA\arabic{syn@id}}\edef\B{spB\arabic{syn@id}}%
   \syn@start{\A}#3\syn@end{\B}%
   % altura necesaria: línea+gap + separación de etiqueta + altura de etiqueta
