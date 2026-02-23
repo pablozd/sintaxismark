@@ -25,9 +25,6 @@
   liney/.store in=\syn@liney,      liney=1ex,
   linegap/.store in=\syn@linegap,  linegap=5.5pt,
   labsep/.store in=\syn@labsep,    labsep=1ex,
-  % liney/.store in=\syn@liney,      liney=2.2ex,
-  % linegap/.store in=\syn@linegap,  linegap=0pt,
-  % labsep/.store in=\syn@labsep,    labsep=0.8ex,
   linew/.store in=\syn@linew,      linew=0.6pt,
   boxd/.store in=\syn@boxd,        boxd=3ex,
   % AUMENTADO el default (antes 0.7ex):
@@ -41,13 +38,9 @@
   underw/.store in=\syn@underw,    underw=0.8pt,
   labelalign/.store in=\syn@labelalign, labelalign=center,
   autogap/.store in=\syn@autogap,  autogap=0.6ex,
-  debugcolor/.store in=\syn@debugcolor, debugcolor=gray!30,
-  spandebugcolor/.store in=\syn@spandebugcolor, spandebugcolor=orange!25,
   leftend/.is if = syn@leftend,
   rightend/.is if = syn@rightend,
   autodepth/.is if = syn@autodepth,
-  debugboxes/.is if = syn@debugboxes,
-  debugspan/.is if = syn@debugspan,
   leftarrow/.is if = syn@leftarrow,
   rightarrow/.is if = syn@rightarrow,
   arrowlen/.store in=\syn@arrowlen, arrowlen=1.3ex,
@@ -57,15 +50,10 @@
 }
 
 
-
-
-
 %% Booleans defaults
 \newif\ifsyn@leftend     \syn@leftendtrue
 \newif\ifsyn@rightend    \syn@rightendtrue
 \newif\ifsyn@autodepth   \syn@autodepthtrue
-\newif\ifsyn@debugboxes  \syn@debugboxesfalse
-\newif\ifsyn@debugspan   \syn@debugspanfalse
 \newif\ifsyn@leftarrow   \syn@leftarrowfalse
 \newif\ifsyn@rightarrow  \syn@rightarrowfalse
 
@@ -126,80 +114,9 @@
 \NewDocumentCommand{\syn@start}{m}{\tikz[remember picture,baseline=(#1.base)]\node[inner sep=0pt,outer sep=0pt](#1){};}
 \NewDocumentCommand{\syn@end}{m}{\tikz[remember picture,baseline=(#1.base)]\node[inner sep=0pt,outer sep=0pt](#1){};}
 
-%% -------- openbox --------
-\NewDocumentCommand{\openbox}{O{} m m}{%
-  \begingroup\pgfkeys{/sintaxis,#1}%
-  \let\syn@reportdepth@parent=\syn@reportdepth
-  \syn@childmaxd=0pt
-  \def\syn@reportdepth##1{\ifdim ##1>\syn@childmaxd \global\syn@childmaxd=##1\fi}%
-  \stepcounter{syn@id}\edef\A{bxA\arabic{syn@id}}\edef\B{bxB\arabic{syn@id}}%
-  \syn@start{\A}#3\syn@end{\B}%
-  \syn@finald=\syn@boxd
-  \ifsyn@autodepth
-    \ifdim \syn@childmaxd>0pt
-      \advance\syn@childmaxd by \syn@autogap
-      \advance\syn@childmaxd by \syn@nestedgap
-      \ifdim \syn@childmaxd>\syn@finald \syn@finald=\syn@childmaxd\fi
-    \fi
-  \fi
-  \syn@uselabelsep=\syn@boxsep
-  \ifdim \syn@labelsepboxes> -0.5sp \syn@uselabelsep=\syn@labelsepboxes \fi
-  \ifdim \syn@labelsep> -0.5sp \syn@uselabelsep=\syn@labelsep \fi
-  \tikz[remember picture,overlay]{%
-    \coordinate(L)at(\A.south west);\coordinate(R)at(\B.south east);
-    \draw[\syn@color,line width=\syn@linew] (L) -- ($(L)-(0,\syn@finald)$);
-    \draw[\syn@color,line width=\syn@linew] (R) -- ($(R)-(0,\syn@finald)$);
-    \draw[\syn@color,line width=\syn@linew] ($(L)-(0,\syn@finald)$) -- ($(R)-(0,\syn@finald)$);
-    \coordinate (M) at ($ (L)!0.5!(R) $);
-    \coordinate (P) at (M);
-    \def\syn@cmp{left}\ifx\syn@labelalign\syn@cmp \coordinate (P) at (L);\else
-      \def\syn@cmp{right}\ifx\syn@labelalign\syn@cmp \coordinate (P) at (R);\else
-        \coordinate (P) at (M);
-      \fi
-    \fi
-    \node[text=\syn@color] at ($ (P) -(0,\syn@finald+\syn@uselabelsep) $) {\footnotesize \textsc{#2}};
-  }%
-  \syn@labheightd=\syn@labheight
-  \begingroup
-    \expandafter\ifx\csname syn@reportdepth@parent\endcsname\relax\else
-      \edef\syn@tmpd{\the\dimexpr \syn@finald + \syn@uselabelsep + \syn@labheightd \relax}%
-      \expandafter\syn@reportdepth@parent\expandafter{\syn@tmpd}%
-    \fi
-  \endgroup
-  \endgroup
-}
-
-%% -------- spanline --------
-\NewDocumentCommand{\spanline}{O{} m m}{%
-  \begingroup\pgfkeys{/sintaxis,#1}%
-  \stepcounter{syn@id}\edef\A{spA\arabic{syn@id}}\edef\B{spB\arabic{syn@id}}%
-  \syn@start{\A}#3\syn@end{\B}%
-  \tikz[remember picture,overlay]{%
-    \coordinate(L)at(\A.north west);\coordinate(R)at(\B.north east);
-    \def\Ybase{\syn@linegap}
-    \def\Ytop{\dimexpr \syn@linegap+\syn@liney \relax}
-    \edef\syn@tipname{\syn@arrowtip}
-    \edef\syn@commonopts{length=\syn@arrowlen,scale=\syn@arrowscale,inset=\syn@arrowinset}
-    \edef\syn@arrleft{{\syn@tipname[\syn@commonopts]}-}
-    \edef\syn@arrright{-{\syn@tipname[\syn@commonopts]}}
-    \edef\syn@arrboth{{\syn@tipname[\syn@commonopts]}-{\syn@tipname[\syn@commonopts]}}
-    \def\syn@arrowstyle{-}
-    \ifsyn@leftarrow
-      \ifsyn@rightarrow \edef\syn@arrowstyle{\syn@arrboth}\else \edef\syn@arrowstyle{\syn@arrleft}\fi
-    \else
-      \ifsyn@rightarrow \edef\syn@arrowstyle{\syn@arrright}\fi
-    \fi
-    \draw[\syn@color,line width=\syn@linew,\syn@arrowstyle] ($(L)+(0,\Ytop)$) -- ($(R)+(0,\Ytop)$);
-    \ifsyn@leftend  \draw[\syn@color,line width=\syn@linew] ($(L)+(0,\Ybase)$) -- ($(L)+(0,\Ytop)$);\fi
-    \ifsyn@rightend \draw[\syn@color,line width=\syn@linew] ($(R)+(0,\Ybase)$) -- ($(R)+(0,\Ytop)$);\fi
-    \node[text=\syn@color] at ($(L)!0.5!(R)+(0,\Ytop+\syn@labsep)$){\footnotesize \textsc{#2}};
-  }\endgroup
-}
-
 %% -------- tags / underline / shortcuts / env --------
 \NewDocumentCommand{\tagabove}{O{} m m}{\begingroup\pgfkeys{/sintaxis,#1}\stepcounter{syn@id}\edef\U{taA\arabic{syn@id}}\edef\V{taB\arabic{syn@id}}\syn@start{\U}#3\syn@end{\V}\tikz[remember picture,overlay]{\coordinate(S)at(\U.north west);\coordinate(E)at(\V.north east);\node[text=\syn@color] at ($(S)!0.5!(E)+(0,\syn@tagy)$) {\scriptsize \textsc{#2}};}\endgroup}
- \NewDocumentCommand{\tagbelow}{O{} m m}{\begingroup\pgfkeys{/sintaxis,#1}\stepcounter{syn@id}\edef\U{tbA\arabic{syn@id}}\edef\V{tbB\arabic{syn@id}}\syn@start{\U}#3\syn@end{\V}\tikz[remember picture,overlay]{\coordinate(S)at(\U.south west);\coordinate(E)at(\V.south east);\node[text=\syn@color] at ($(S)!0.5!(E)+(\syn@tagx,-\syn@tagy)$) {\scriptsize \textsc{#2}};}\endgroup}
-%\NewDocumentCommand{\tagbelow}{O{} m m}{\begingroup\pgfkeys{/sintaxis,#1}\stepcounter{syn@id}\edef\U{tbA\arabic{syn@id}}\edef\V{tbB\arabic{syn@id}}\syn@start{\U}#3\syn@end{\V}\tikz[remember picture,overlay]{\coordinate(S)at(\U.south west);\coordinate(E)at(\V.south east);\node[text=\syn@color] at ($(S)!0.7!(E)-(0,\syn@tagy)$) {\scriptsize \textsc{#2}};}\endgroup}
+\NewDocumentCommand{\tagbelow}{O{} m m}{\begingroup\pgfkeys{/sintaxis,#1}\stepcounter{syn@id}\edef\U{tbA\arabic{syn@id}}\edef\V{tbB\arabic{syn@id}}\syn@start{\U}#3\syn@end{\V}\tikz[remember picture,overlay]{\coordinate(S)at(\U.south west);\coordinate(E)at(\V.south east);\node[text=\syn@color] at ($(S)!0.5!(E)+(\syn@tagx,-\syn@tagy)$) {\scriptsize \textsc{#2}};}\endgroup}
 \NewDocumentCommand{\synul}{O{} m}{\begingroup\pgfkeys{/sintaxis,#1}\stepcounter{syn@id}\edef\U{ulA\arabic{syn@id}}\edef\V{ulB\arabic{syn@id}}\syn@start{\U}#2\syn@end{\V}\tikz[remember picture,overlay]{\coordinate(S)at(\U.south west);\coordinate(E)at(\V.south east);\draw[\syn@color,line width=\syn@underw] ($(S)-(0,0.55ex)$) -- ($(E)-(0,0.55ex)$);}\endgroup}
 
 
@@ -265,9 +182,6 @@
 % ===== v0.6.16 additions end =====
 
 
-
-
-
 % ---- Auto-reserva vertical para evitar solapamientos con gb4e (wrap por renglón)
 \makeatletter
 % helpers: reservar "arriba" (altura) y "abajo" (profundidad)
@@ -276,8 +190,8 @@
 \newcommand*\syn@reservebelow[1]{%
   \vadjust{\kern #1}} % inserta espacio por debajo de la línea actual
 
-% --- REDEFINICIÓN con reserva para \openbox (lo dibujado va DEBAJO del renglón)
-\RenewDocumentCommand{\openbox}{O{} m m}{%
+% --- \openbox (lo dibujado va DEBAJO del renglón)
+\NewDocumentCommand{\openbox}{O{} m m}{%
   \begingroup\pgfkeys{/sintaxis,#1}%
   \let\syn@reportdepth@parent=\syn@reportdepth
   \syn@childmaxd=0pt
@@ -302,9 +216,20 @@
   % ---- Dibujo
   \tikz[remember picture,overlay]{%
     \coordinate(L)at(\A.south west);\coordinate(R)at(\B.south east);
-    \draw[\syn@color,line width=\syn@linew] (L) -- ($(L)-(0,\syn@finald)$);
-    \draw[\syn@color,line width=\syn@linew] (R) -- ($(R)-(0,\syn@finald)$);
-    \draw[\syn@color,line width=\syn@linew] ($(L)-(0,\syn@finald)$) -- ($(R)-(0,\syn@finald)$);
+    \edef\syn@tipname{\syn@arrowtip}
+    \edef\syn@commonopts{length=\syn@arrowlen,scale=\syn@arrowscale,inset=\syn@arrowinset}
+    \edef\syn@arrleft{{\syn@tipname[\syn@commonopts]}-}
+    \edef\syn@arrright{-{\syn@tipname[\syn@commonopts]}}
+    \edef\syn@arrboth{{\syn@tipname[\syn@commonopts]}-{\syn@tipname[\syn@commonopts]}}
+    \def\syn@arrowstyle{-}
+    \ifsyn@leftarrow
+      \ifsyn@rightarrow \edef\syn@arrowstyle{\syn@arrboth}\else \edef\syn@arrowstyle{\syn@arrleft}\fi
+    \else
+      \ifsyn@rightarrow \edef\syn@arrowstyle{\syn@arrright}\fi
+    \fi
+    \ifsyn@leftend  \draw[\syn@color,line width=\syn@linew] (L) -- ($(L)-(0,\syn@finald)$);\fi
+    \ifsyn@rightend \draw[\syn@color,line width=\syn@linew] (R) -- ($(R)-(0,\syn@finald)$);\fi
+    \draw[\syn@color,line width=\syn@linew,\syn@arrowstyle] ($(L)-(0,\syn@finald)$) -- ($(R)-(0,\syn@finald)$);
     \coordinate (M) at ($ (L)!0.5!(R) $);
     \coordinate (P) at (M);
     \def\syn@cmp{left}\ifx\syn@labelalign\syn@cmp \coordinate (P) at (L);\else
@@ -321,8 +246,8 @@
   \endgroup
 }
 
-% --- REDEFINICIÓN con reserva para \spanline (lo dibujado va ARRIBA del renglón)
-\RenewDocumentCommand{\spanline}{O{} m m}{%
+% --- \spanline (lo dibujado va ARRIBA del renglón)
+\NewDocumentCommand{\spanline}{O{} m m}{%
   \begingroup\pgfkeys{/sintaxis,#1}%
   \stepcounter{syn@id}\edef\A{spA\arabic{syn@id}}\edef\B{spB\arabic{syn@id}}%
   \syn@start{\A}#3\syn@end{\B}%
@@ -354,7 +279,6 @@
   }\endgroup
 }
 \makeatother
-
 
 % ======= MODO COMPACTO EXTREMO: recorte duro de la reserva =======
 \makeatletter
@@ -402,18 +326,9 @@
   \spanline[#1]{#2}{\mbox{#3}}%
 }
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
-
 % Nota técnica:
 % Si un \openbox normal (no-NB) cruza un salto de línea, los anclajes de inicio
 % y fin quedan en líneas distintas y la línea superior del "openbox" podría
 % resultar ligeramente inclinada. Para evitarlo, use \openboxNB para spans largos.
 
 % --- Ajuste global del espacio vertical entre análisis (v0.6.19b)
-
-
-
-
-
-
