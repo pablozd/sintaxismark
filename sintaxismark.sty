@@ -57,6 +57,13 @@
 \newif\ifsyn@leftarrow   \syn@leftarrowfalse
 \newif\ifsyn@rightarrow  \syn@rightarrowfalse
 
+%% Modo de corte: 0=normal  1=corte-derecha  2=corte-izquierda
+\newcount\syn@breakmode  \syn@breakmode=0
+\newcommand*\syn@applybreakmode{%
+  \ifnum\syn@breakmode=1 \syn@rightarrowtrue\syn@rightendfalse\fi
+  \ifnum\syn@breakmode=2 \syn@leftarrowtrue \syn@leftendfalse \fi
+}
+
 \newdimen\syn@childmaxd
 \newdimen\syn@finald
 \newdimen\syn@labelsep      \syn@labelsep=-1sp
@@ -195,6 +202,7 @@
   \begingroup
   \syn@leftendtrue\syn@rightendtrue\syn@leftarrowfalse\syn@rightarrowfalse
   \pgfkeys{/sintaxis,#1}%
+  \syn@applybreakmode
   \let\syn@reportdepth@parent=\syn@reportdepth
   \syn@childmaxd=0pt
   \def\syn@reportdepth##1{\ifdim ##1>\syn@childmaxd \global\syn@childmaxd=##1\fi}%
@@ -253,6 +261,7 @@
   \begingroup
   \syn@leftendtrue\syn@rightendtrue\syn@leftarrowfalse\syn@rightarrowfalse
   \pgfkeys{/sintaxis,#1}%
+  \syn@applybreakmode
   \stepcounter{syn@id}\edef\A{spA\arabic{syn@id}}\edef\B{spB\arabic{syn@id}}%
   \syn@start{\A}#3\syn@end{\B}%
   % altura necesaria: línea+gap + separación de etiqueta + altura de etiqueta
@@ -334,5 +343,29 @@
 % Si un \openbox normal (no-NB) cruza un salto de línea, los anclajes de inicio
 % y fin quedan en líneas distintas y la línea superior del "openbox" podría
 % resultar ligeramente inclinada. Para evitarlo, use \openboxNB para spans largos.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%% BREAKSPAN %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% \breakspan{<renglón-1>}{<renglón-2>}
+%%
+%% Aplica automáticamente rightarrow+no-rightend a todos los spans del primer
+%% argumento, y leftarrow+no-leftend a todos los del segundo, sin importar
+%% cuántos niveles de anidamiento haya.
+%%
+%% Uso:
+%%   \breakspan
+%%     {\SES{\MI{El departamento de unos monoblocks}}}
+%%     {\SES{\MI{quedaba en la planta baja.}}}
+%%
+%% Funciona porque \syn@breakmode es un contador TeX: su valor se hereda en los
+%% grupos hijos (cada \openbox/\spanline abre \begingroup) pero los cambios
+%% internos a esos grupos NO lo afectan — el modo persiste a través de todo
+%% el árbol de anidamiento.
+%%
+\NewDocumentCommand{\breakspan}{m m}{%
+  {\syn@breakmode=1\relax #1}%
+  {\syn@breakmode=2\relax #2}%
+}
 
 % --- Ajuste global del espacio vertical entre análisis (v0.6.19b)
