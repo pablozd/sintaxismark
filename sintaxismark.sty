@@ -363,9 +363,11 @@
 %% internos a esos grupos NO lo afectan — el modo persiste a través de todo
 %% el árbol de anidamiento.
 %%
+\makeatletter
 \NewDocumentCommand{\breakspan}{m m}{%
   {\syn@breakmode=1\relax #1}%
   {\syn@breakmode=2\relax #2}%
 }
+\makeatother
 
 % --- Ajuste global del espacio vertical entre análisis (v0.6.19b)
