@@ -1,4 +1,9 @@
-%% sintaxismark.sty  v0.6.22 (2026-06-28)
+%% sintaxismark.sty  v0.6.23 (2026-06-28)
+%% CHANGE v0.6.23: Add experimental LuaLaTeX-only automatic splitting commands:
+%%   \autospanline[<width>]{<label>}{<plain text>} and
+%%   \autoopenbox[<width>]{<label>}{<plain text>}. These commands use
+%%   local width (default \linewidth) and a balanced line-splitting heuristic.
+%%   They are experimental and do not parse nested sintaxismark markup yet.
 %% CHANGE v0.6.22: Add manual multi-line helpers for split spans and boxes:
 %%   \spanfirst, \spanmid, \spanlast; \boxfirst, \boxmid, \boxlast.
 %%   Add shortcut wrappers \SESfirst/\SESmid/\SESlast and analogous
@@ -504,3 +509,102 @@
 \NewDocumentCommand{\OSfirst}{O{} m}{\spanfirst[#1]{os}{#2}}
 \NewDocumentCommand{\OSmid}{O{} m}{\spanmid[#1]{os}{#2}}
 \NewDocumentCommand{\OSlast}{O{} m}{\spanlast[#1]{os}{#2}}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%% EXPERIMENTAL AUTO SPLIT SPAN / BOX %%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% v0.6.23 experimental
+%% LuaLaTeX only. Plain text only: nested sintaxismark commands are not parsed.
+%% Default width is \linewidth, so the command can adapt to gb4e/expex/linguex
+%% local example widths when used inside those environments.
+%%
+%%   \autospanline[<width>]{<label>}{<plain text>}
+%%   \autoopenbox[<width>]{<label>}{<plain text>}
+%%
+%% These commands choose a balanced line split and then emit \spanfirst/\spanmid/
+%% \spanlast or \boxfirst/\boxmid/\boxlast internally. They do not replace
+%% \spanline or \openbox.
+
+\ifdefined\directlua
+\directlua{
+  sintaxismark_autosplit = function(mode, width_sp, fs, label, text)
+    local width_pt = width_sp / 65536
+    local cap = math.max(12, math.floor(width_pt / (fs * 0.48)))
+    local words = {}
+    local weights = {}
+    local n = 0
+    local total = 0
+    for w in text:gmatch(string.char(37).."S+") do
+      n = n + 1
+      words[n] = w
+      local ulen = utf8.len(w)
+      if not ulen then ulen = string.len(w) end
+      weights[n] = ulen
+      total = total + ulen + (n > 1 and 1 or 0)
+    end
+    if n == 0 then return end
+    local lines = math.min(n, math.max(1, math.ceil(total / cap)))
+    local target = total / lines
+    local chunks = {}
+    local i = 1
+    for l=1,lines do
+      local remaining_lines = lines - l + 1
+      local remaining_words = n - i + 1
+      local min_words_here = 1
+      local max_words_here = remaining_words - (remaining_lines - 1)
+      local cur = 0
+      local start = i
+      local count = 0
+      while i <= n and count < max_words_here do
+        local add = weights[i] + (count > 0 and 1 or 0)
+        if count >= min_words_here and cur + add > target and l < lines then
+          break
+        end
+        cur = cur + add
+        i = i + 1
+        count = count + 1
+      end
+      if l == lines then i = n + 1 end
+      local stop = (l == lines) and n or (i - 1)
+      chunks[l] = table.concat(words, " ", start, stop)
+    end
+    for l=1,lines do
+      local line = chunks[l]
+      local cmd
+      if mode == "span" then
+        if lines == 1 then cmd = "\\spanline"
+        elseif l == 1 then cmd = "\\spanfirst"
+        elseif l == lines then cmd = "\\spanlast"
+        else cmd = "\\spanmid" end
+      else
+        if lines == 1 then cmd = "\\openbox"
+        elseif l == 1 then cmd = "\\boxfirst"
+        elseif l == lines then cmd = "\\boxlast"
+        else cmd = "\\boxmid" end
+      end
+      tex.sprint(cmd .. "{" .. label .. "}{" .. line .. "}\\par")
+    end
+  end
+}
+\makeatletter
+\NewDocumentCommand{\autospanline}{O{\linewidth} m +m}{%
+  \begingroup\parindent=0pt\relax
+  \directlua{sintaxismark_autosplit("span", tonumber("\number\dimexpr#1\relax"), tonumber("\f@size") or 10, "\luaescapestring{#2}", "\luaescapestring{#3}")}%
+  \endgroup
+}
+\NewDocumentCommand{\autoopenbox}{O{\linewidth} m +m}{%
+  \begingroup\parindent=0pt\relax
+  \directlua{sintaxismark_autosplit("box", tonumber("\number\dimexpr#1\relax"), tonumber("\f@size") or 10, "\luaescapestring{#2}", "\luaescapestring{#3}")}%
+  \endgroup
+}
+\makeatother
+\else
+\NewDocumentCommand{\autospanline}{O{\linewidth} m +m}{%
+  \PackageError{sintaxismark}{\string\autospanline\space requires LuaLaTeX}{Compile with LuaLaTeX to use experimental automatic splitting.}%
+}
+\NewDocumentCommand{\autoopenbox}{O{\linewidth} m +m}{%
+  \PackageError{sintaxismark}{\string\autoopenbox\space requires LuaLaTeX}{Compile with LuaLaTeX to use experimental automatic splitting.}%
+}
+\fi
