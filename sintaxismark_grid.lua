@@ -224,21 +224,21 @@ local function draw_mark(m, positions, lines, ybases)
       table.insert(code, fmt(BS .. "draw (%.3f,%.3f) -- (%.3f,%.3f);", x1,y,x2,y))
       if seg.first then table.insert(code, fmt(BS .. "draw (%.3f,%.3f) -- (%.3f,%.3f);", x1,ylow,x1,y)) end
       if seg.last then table.insert(code, fmt(BS .. "draw (%.3f,%.3f) -- (%.3f,%.3f);", x2,ylow,x2,y)) end
-      if si == 1 then table.insert(code, fmt(BS .. "node[anchor=south] at (%.3f,%.3f) {%s};", (x1+x2)/2, y+0.04, label)) end
+      table.insert(code, fmt(BS .. "node[anchor=south] at (%.3f,%.3f) {%s};", (x1+x2)/2, y+0.04, label))
     elseif m.kind == "box" then
       local y = ybase - 0.42 - 0.34 * (m.level or 1)
       local ytop = ybase - 0.25
       table.insert(code, fmt(BS .. "draw (%.3f,%.3f) -- (%.3f,%.3f);", x1,y,x2,y))
       if seg.first then table.insert(code, fmt(BS .. "draw (%.3f,%.3f) -- (%.3f,%.3f);", x1,ytop,x1,y)) end
       if seg.last then table.insert(code, fmt(BS .. "draw (%.3f,%.3f) -- (%.3f,%.3f);", x2,ytop,x2,y)) end
-      if si == 1 then table.insert(code, fmt(BS .. "node[anchor=north] at (%.3f,%.3f) {%s};", (x1+x2)/2, y-0.05, label)) end
+      table.insert(code, fmt(BS .. "node[anchor=north] at (%.3f,%.3f) {%s};", (x1+x2)/2, y-0.05, label))
     elseif m.kind == "under" then
       local y = ybase - 0.28 - 0.26 * (m.level or 1)
       table.insert(code, fmt(BS .. "draw (%.3f,%.3f) -- (%.3f,%.3f);", x1,y,x2,y))
-      if si == 1 then table.insert(code, fmt(BS .. "node[anchor=north] at (%.3f,%.3f) {%s};", (x1+x2)/2, y-0.05, label)) end
+      table.insert(code, fmt(BS .. "node[anchor=north] at (%.3f,%.3f) {%s};", (x1+x2)/2, y-0.05, label))
     else
       local y = ybase - 0.36 - 0.28 * (m.level or 1)
-      if si == 1 then table.insert(code, fmt(BS .. "node[anchor=north] at (%.3f,%.3f) {%s};", (x1+x2)/2, y, label)) end
+      table.insert(code, fmt(BS .. "node[anchor=north] at (%.3f,%.3f) {%s};", (x1+x2)/2, y, label))
     end
   end
   return table.concat(code, string.char(10))
