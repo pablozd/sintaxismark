@@ -4,7 +4,7 @@
 
 The package draws annotations with TikZ: lower open brackets, upper span lines, floating labels, underlining, arrowheads, and nested markings.
 
-Documentation status: this README and `sintaxismark-doc-en.tex` document `v0.6.21` — 2026-06-15.
+Documentation status: this README and the files in `doc/` document `v0.6.21` — 2026-06-15.
 
 ## Features
 
@@ -187,7 +187,10 @@ Common keys:
 
 ## Documentation
 
-The English documentation is in [`sintaxismark-doc-en.tex`](sintaxismark-doc-en.tex).
+The documentation sources are stored in `doc/`:
+
+- [`doc/sintaxismark-doc-en.tex`](doc/sintaxismark-doc-en.tex)
+- [`doc/sintaxismark-doc-es.tex`](doc/sintaxismark-doc-es.tex)
 
 ## Notes
 
