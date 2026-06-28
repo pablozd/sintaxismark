@@ -1,0 +1,87 @@
+\documentclass[12pt]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{sintaxismark}
+\usepackage{sintaxismark-grid}
+
+\title{\texttt{sintaxismark} v0.7.0 -- grid mode demo}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{1. New experimental grid syntax}
+
+The new mode uses the same labels inside a dedicated environment. The commands do not draw immediately; the environment extracts tokens, infers ranges, computes line breaks, and then draws the analysis.
+
+\begin{sintaxisgrid}[width=12cm]
+\SA{
+  \SES{Juan}
+  \PVS{
+    vio
+    \OD*{
+      \MD{un}
+      \N{tigre}
+      \NN{orgulloso}
+      \MI*{
+        de
+        \COMP*{
+          \MD{sus}
+          \N{garras}
+        }
+      }
+    }
+  }
+}
+\end{sintaxisgrid}
+
+\section*{2. Long example with automatic line breaking}
+
+\begin{sintaxisgrid}[width=13cm]
+\SA{
+  \PVS{
+    Te propongo
+    \OD*{
+      \MD{una}
+      \N{consigna}
+      \MI*{
+        de
+        \COMP*{
+          \N{comprobacion}
+          \MI*{de \N{lectura}}
+        }
+      }
+      \MI*{
+        sobre
+        \COMP*{
+          \MD{la}
+          \N{clasificacion}
+          \NN{general}
+          \MI*{de \N{Bosque}}
+        }
+      }
+    }
+    con ejemplos propios o tomados del texto
+  }
+}
+\end{sintaxisgrid}
+
+\section*{3. Starred and unstarred behavior}
+
+\begin{sintaxisgrid}[width=12cm]
+\SA{
+  \PVS{
+    analizo
+    \OD{
+      \MD{esta}
+      \N{oracion}
+      \MI*{con \N{cuidado}}
+    }
+  }
+}
+\end{sintaxisgrid}
+
+\bigskip
+\noindent\textbf{Legend.} Inside \texttt{sintaxisgrid}, upper labels such as \texttt{SES} and \texttt{PVS} become upper spans; starred lower labels such as \texttt{OD*}, \texttt{MI*}, and \texttt{COMP*} become lower open boxes; unstarred \texttt{OD} and \texttt{OI} become underline+label; labels such as \texttt{MD}, \texttt{N}, \texttt{NN}, and \texttt{NV} become simple tags.
+
+\end{document}
