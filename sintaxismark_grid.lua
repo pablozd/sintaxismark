@@ -8,6 +8,24 @@ local upper_labels = { SES=true, ST=true, SEC=true, PVS=true, PVC=true, OS=true 
 local under_labels = { OD=true, OI=true }
 local BS = string.char(92)
 
+-- Visual constants, tuned to resemble sintaxismark.sty's classic spanline/openbox.
+local VIS = {
+  upper_y_base = 0.47,
+  upper_leg = 0.32,
+  upper_level_gap = 0.36,
+  upper_label_sep = 0.04,
+  lower_y_base = 0.40,
+  lower_level_gap = 0.40,
+  lower_leg_top = 0.25,
+  lower_label_sep = 0.08,
+  tag_y_base = 0.36,
+  tag_level_gap = 0.30,
+  token_gap = 0.26,
+  linegap = 1.95,
+  line_base = 1.45,
+  line_lower_extra = 0.46
+}
+
 local function tex_escape(s)
   s = s:gsub("%%", BS .. "%")
   s = s:gsub("&", BS .. "&")
@@ -128,7 +146,7 @@ end
 
 local function layout_tokens(tokens, width_cm)
   local positions, lines = {}, {}
-  local gap = 0.26
+  local gap = VIS.token_gap
   local line, x = 1, 0
   lines[1] = {start=1, stop=0, width=0}
   for i,tok in ipairs(tokens) do
@@ -153,8 +171,11 @@ local function layout_tokens(tokens, width_cm)
 end
 
 local function range_size(m) return m.stop - m.start + 1 end
+local function overlaps(a,b)
+  return not (a.stop < b.start or b.stop < a.start)
+end
 
-local function compute_levels(marks)
+local function assign_lower_levels(marks)
   local lower = {}
   for _,m in ipairs(marks) do
     if m.kind ~= "span" then table.insert(lower, m) end
@@ -173,10 +194,32 @@ local function compute_levels(marks)
     end
     m.level = level
   end
-  local span_count = 0
+end
+
+local function assign_upper_levels(marks)
+  local spans = {}
   for _,m in ipairs(marks) do
-    if m.kind == "span" then span_count = span_count + 1; m.level = span_count end
+    if m.kind == "span" then table.insert(spans, m) end
   end
+  table.sort(spans, function(a,b)
+    if a.start == b.start then return range_size(a) < range_size(b) end
+    return a.start < b.start
+  end)
+  for _,m in ipairs(spans) do
+    local level = 1
+    for _,o in ipairs(spans) do
+      if o == m then break end
+      if overlaps(m,o) and (o.level or 1) >= level then
+        level = (o.level or 1) + 1
+      end
+    end
+    m.level = level
+  end
+end
+
+local function compute_levels(marks)
+  assign_lower_levels(marks)
+  assign_upper_levels(marks)
 end
 
 local function mark_segments(m, positions, lines)
@@ -213,31 +256,31 @@ local function fmt(...) return string.format(...) end
 local function draw_mark(m, positions, lines, ybases)
   local code = {}
   local segs = mark_segments(m, positions, lines)
-  for si,seg in ipairs(segs) do
+  for _,seg in ipairs(segs) do
     local p1, p2 = positions[seg.a], positions[seg.b]
     local ybase = ybases[seg.line]
     local x1, x2 = p1.left, p2.right
     local label = BS .. "scriptsize" .. BS .. "textsc{" .. tex_escape(m.label) .. "}"
     if m.kind == "span" then
-      local y = ybase + 0.48 + 0.36 * (m.level or 1)
-      local ylow = ybase + 0.25
+      local ylow = ybase + VIS.upper_y_base
+      local y = ylow + VIS.upper_leg + VIS.upper_level_gap * ((m.level or 1)-1)
       table.insert(code, fmt(BS .. "draw (%.3f,%.3f) -- (%.3f,%.3f);", x1,y,x2,y))
       if seg.first then table.insert(code, fmt(BS .. "draw (%.3f,%.3f) -- (%.3f,%.3f);", x1,ylow,x1,y)) end
       if seg.last then table.insert(code, fmt(BS .. "draw (%.3f,%.3f) -- (%.3f,%.3f);", x2,ylow,x2,y)) end
-      table.insert(code, fmt(BS .. "node[anchor=south] at (%.3f,%.3f) {%s};", (x1+x2)/2, y+0.04, label))
+      table.insert(code, fmt(BS .. "node[anchor=south] at (%.3f,%.3f) {%s};", (x1+x2)/2, y+VIS.upper_label_sep, label))
     elseif m.kind == "box" then
-      local y = ybase - 0.40 - 0.40 * (m.level or 1)
-      local ytop = ybase - 0.25
+      local y = ybase - VIS.lower_y_base - VIS.lower_level_gap * (m.level or 1)
+      local ytop = ybase - VIS.lower_leg_top
       table.insert(code, fmt(BS .. "draw (%.3f,%.3f) -- (%.3f,%.3f);", x1,y,x2,y))
       if seg.first then table.insert(code, fmt(BS .. "draw (%.3f,%.3f) -- (%.3f,%.3f);", x1,ytop,x1,y)) end
       if seg.last then table.insert(code, fmt(BS .. "draw (%.3f,%.3f) -- (%.3f,%.3f);", x2,ytop,x2,y)) end
-      table.insert(code, fmt(BS .. "node[anchor=north] at (%.3f,%.3f) {%s};", (x1+x2)/2, y-0.08, label))
+      table.insert(code, fmt(BS .. "node[anchor=north] at (%.3f,%.3f) {%s};", (x1+x2)/2, y-VIS.lower_label_sep, label))
     elseif m.kind == "under" then
-      local y = ybase - 0.40 - 0.40 * (m.level or 1)
+      local y = ybase - VIS.lower_y_base - VIS.lower_level_gap * (m.level or 1)
       table.insert(code, fmt(BS .. "draw (%.3f,%.3f) -- (%.3f,%.3f);", x1,y,x2,y))
-      table.insert(code, fmt(BS .. "node[anchor=north] at (%.3f,%.3f) {%s};", (x1+x2)/2, y-0.08, label))
+      table.insert(code, fmt(BS .. "node[anchor=north] at (%.3f,%.3f) {%s};", (x1+x2)/2, y-VIS.lower_label_sep, label))
     else
-      local y = ybase - 0.36 - 0.30 * (m.level or 1)
+      local y = ybase - VIS.tag_y_base - VIS.tag_level_gap * (m.level or 1)
       table.insert(code, fmt(BS .. "node[anchor=north] at (%.3f,%.3f) {%s};", (x1+x2)/2, y, label))
     end
   end
@@ -253,11 +296,11 @@ function SG.render(body, width_sp)
   compute_levels(marks)
   local positions, lines = layout_tokens(tokens, width_cm)
   local maxlower = line_max_lower_levels(marks, positions, lines)
-  local ybase, linegap = {}, 1.95
+  local ybase = {}
   local y = 0
   for l=1,#lines do
     ybase[l] = y
-    y = y - (1.45 + 0.46 * maxlower[l] + linegap)
+    y = y - (VIS.line_base + VIS.line_lower_extra * maxlower[l] + VIS.linegap)
   end
   local code = {}
   table.insert(code, BS .. "begin{tikzpicture}[x=1cm,y=1cm,baseline=(current bounding box.center),line cap=round]")
