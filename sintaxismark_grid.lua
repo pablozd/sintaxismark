@@ -226,18 +226,18 @@ local function draw_mark(m, positions, lines, ybases)
       if seg.last then table.insert(code, fmt(BS .. "draw (%.3f,%.3f) -- (%.3f,%.3f);", x2,ylow,x2,y)) end
       table.insert(code, fmt(BS .. "node[anchor=south] at (%.3f,%.3f) {%s};", (x1+x2)/2, y+0.04, label))
     elseif m.kind == "box" then
-      local y = ybase - 0.42 - 0.34 * (m.level or 1)
+      local y = ybase - 0.40 - 0.40 * (m.level or 1)
       local ytop = ybase - 0.25
       table.insert(code, fmt(BS .. "draw (%.3f,%.3f) -- (%.3f,%.3f);", x1,y,x2,y))
       if seg.first then table.insert(code, fmt(BS .. "draw (%.3f,%.3f) -- (%.3f,%.3f);", x1,ytop,x1,y)) end
       if seg.last then table.insert(code, fmt(BS .. "draw (%.3f,%.3f) -- (%.3f,%.3f);", x2,ytop,x2,y)) end
-      table.insert(code, fmt(BS .. "node[anchor=north] at (%.3f,%.3f) {%s};", (x1+x2)/2, y-0.05, label))
+      table.insert(code, fmt(BS .. "node[anchor=north] at (%.3f,%.3f) {%s};", (x1+x2)/2, y-0.08, label))
     elseif m.kind == "under" then
-      local y = ybase - 0.28 - 0.26 * (m.level or 1)
+      local y = ybase - 0.40 - 0.40 * (m.level or 1)
       table.insert(code, fmt(BS .. "draw (%.3f,%.3f) -- (%.3f,%.3f);", x1,y,x2,y))
-      table.insert(code, fmt(BS .. "node[anchor=north] at (%.3f,%.3f) {%s};", (x1+x2)/2, y-0.05, label))
+      table.insert(code, fmt(BS .. "node[anchor=north] at (%.3f,%.3f) {%s};", (x1+x2)/2, y-0.08, label))
     else
-      local y = ybase - 0.36 - 0.28 * (m.level or 1)
+      local y = ybase - 0.36 - 0.30 * (m.level or 1)
       table.insert(code, fmt(BS .. "node[anchor=north] at (%.3f,%.3f) {%s};", (x1+x2)/2, y, label))
     end
   end
@@ -257,7 +257,7 @@ function SG.render(body, width_sp)
   local y = 0
   for l=1,#lines do
     ybase[l] = y
-    y = y - (1.35 + 0.38 * maxlower[l] + linegap)
+    y = y - (1.45 + 0.46 * maxlower[l] + linegap)
   end
   local code = {}
   table.insert(code, BS .. "begin{tikzpicture}[x=1cm,y=1cm,baseline=(current bounding box.center),line cap=round]")
