@@ -210,11 +210,12 @@ end
 
 local function fmt(...) return string.format(...) end
 
-local function draw_mark(m, positions, lines, ybase)
+local function draw_mark(m, positions, lines, ybases)
   local code = {}
   local segs = mark_segments(m, positions, lines)
   for si,seg in ipairs(segs) do
     local p1, p2 = positions[seg.a], positions[seg.b]
+    local ybase = ybases[seg.line]
     local x1, x2 = p1.left, p2.right
     local label = BS .. "scriptsize" .. BS .. "textsc{" .. tex_escape(m.label) .. "}"
     if m.kind == "span" then
@@ -266,10 +267,10 @@ function SG.render(body, width_sp)
     table.insert(code, fmt(BS .. "node[anchor=base west] at (%.3f,%.3f) {%s};", p.left, ybase[p.line], tex_escape(tok)))
   end
   for _,m in ipairs(marks) do
-    if m.kind == "span" then table.insert(code, draw_mark(m, positions, lines, ybase[positions[m.start].line])) end
+    if m.kind == "span" then table.insert(code, draw_mark(m, positions, lines, ybase)) end
   end
   for _,m in ipairs(marks) do
-    if m.kind ~= "span" then table.insert(code, draw_mark(m, positions, lines, ybase[positions[m.start].line])) end
+    if m.kind ~= "span" then table.insert(code, draw_mark(m, positions, lines, ybase)) end
   end
   table.insert(code, BS .. "end{tikzpicture}")
   tex.sprint(table.concat(code, string.char(10)))
