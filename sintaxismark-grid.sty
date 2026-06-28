@@ -1,0 +1,35 @@
+%% sintaxismark-grid.sty  v0.7.0 (2026-06-28)
+%% Experimental grid/gloss-like layout mode for sintaxismark.
+%% LuaLaTeX only.
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{sintaxismark-grid}[2026/06/28 v0.7.0 experimental grid mode]
+
+\RequirePackage{xparse}
+\RequirePackage{environ}
+\RequirePackage{tikz}
+\RequirePackage{pgfkeys}
+\usetikzlibrary{calc}
+
+\newdimen\sgrid@width
+\pgfkeys{/sgrid/.is family,/sgrid,
+  width/.code={\sgrid@width=#1\relax},
+  width=\linewidth
+}
+
+\ifdefined\directlua
+\directlua{require("sintaxismark_grid")}
+\NewEnviron{sintaxisgrid}[1][width=\linewidth]{%
+  \begingroup
+  \pgfkeys{/sgrid,width=\linewidth,#1}%
+  \par\noindent
+  \edef\sgrid@body{\detokenize\expandafter{\BODY}}%
+  \directlua{sintaxismark_grid.render([===[\sgrid@body]===], "\number\sgrid@width")}%
+  \par
+  \endgroup
+}
+\else
+\NewEnviron{sintaxisgrid}[1][width=\linewidth]{%
+  \PackageError{sintaxismark-grid}{sintaxisgrid requires LuaLaTeX}{Compile with LuaLaTeX to use the experimental grid mode.}%
+}
+\fi
