@@ -37,7 +37,7 @@ def read_text(path: Path) -> str:
 
 
 def strip_endinput(tex: str) -> str:
-    """Keep only the material before the first TeX \endinput."""
+    r"""Keep only the material before the first TeX \endinput."""
     marker = "\\endinput"
     if marker in tex:
         tex = tex.split(marker, 1)[0]
@@ -126,6 +126,7 @@ def main() -> None:
     \PackageError{{sintaxismark}}{{sintaxisgrid requires LuaLaTeX}}{{Compile with LuaLaTeX to use the experimental grid mode.}}%
   }}
 \fi
+\makeatother
 
 %% End of integrated grid mode.
 \endinput
