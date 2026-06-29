@@ -329,10 +329,12 @@ Common keys:
 
 ## Documentation
 
-The documentation sources are stored in `doc/`:
+The documentation sources and generated PDFs are stored in `doc/`:
 
 - [`doc/sintaxismark-doc-en.tex`](doc/sintaxismark-doc-en.tex)
 - [`doc/sintaxismark-doc-es.tex`](doc/sintaxismark-doc-es.tex)
+- [`doc/sintaxismark-doc-en.pdf`](doc/sintaxismark-doc-en.pdf)
+- [`doc/sintaxismark-doc-es.pdf`](doc/sintaxismark-doc-es.pdf)
 
 ## Notes
 
@@ -343,4 +345,6 @@ The documentation sources are stored in `doc/`:
 
 ## License
 
-Add a `LICENSE` file before publishing or distributing the package formally.
+`sintaxismark` is distributed under the LaTeX Project Public License, version 1.3c or later. See [`LICENSE`](LICENSE).
+
+The LPPL maintenance status is `maintained`; the Current Maintainer is Pablo Damián Zdrojewski.
