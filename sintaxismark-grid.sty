@@ -1,35 +1,74 @@
-%% sintaxismark-grid.sty  v0.7.0 (2026-06-28)
+%% sintaxismark-grid.sty  v0.7.1 (2026-06-29)
 %% Experimental grid/gloss-like layout mode for sintaxismark.
 %% LuaLaTeX only.
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{sintaxismark-grid}[2026/06/28 v0.7.0 experimental grid mode]
+\ProvidesPackage{sintaxismark-grid}[2026/06/29 v0.7.1 experimental grid mode]
 
 \RequirePackage{xparse}
 \RequirePackage{environ}
 \RequirePackage{tikz}
 \RequirePackage{pgfkeys}
+\RequirePackage{luacode}
 \usetikzlibrary{calc}
 
 \newdimen\sgrid@width
+\newdimen\sgrid@yoffset
+\newsavebox{\sgrid@box}
+
+\newcommand*{\sgrid@valign}{base}
+
 \pgfkeys{/sgrid/.is family,/sgrid,
   width/.code={\sgrid@width=#1\relax},
-  width=\linewidth
+  yoffset/.code={\sgrid@yoffset=#1\relax},
+  valign/.store in=\sgrid@valign,
+  base/.code={\def\sgrid@valign{base}},
+  t/.code={\def\sgrid@valign{t}},
+  c/.code={\def\sgrid@valign{c}},
+  b/.code={\def\sgrid@valign{b}},
+  width=\linewidth,
+  yoffset=0pt,
+  valign=base,
+  .unknown/.code={}
 }
 
 \ifdefined\directlua
-\directlua{require("sintaxismark_grid")}
-\NewEnviron{sintaxisgrid}[1][width=\linewidth]{%
-  \begingroup
-  \pgfkeys{/sgrid,width=\linewidth,#1}%
-  \par\noindent
-  \edef\sgrid@body{\detokenize\expandafter{\BODY}}%
-  \directlua{sintaxismark_grid.render([===[\sgrid@body]===], "\number\sgrid@width")}%
-  \par
-  \endgroup
-}
+  \directlua{require("sintaxismark_grid")}
+
+  \NewEnviron{sintaxisgrid}[1][width=\linewidth]{%
+    \begingroup
+    \pgfkeys{/sgrid,width=\linewidth,#1}%
+    \setbox\sgrid@box=\hbox{%
+      \directlua{
+        sintaxismark_grid.render(
+          "\luaescapestring{\unexpanded\expandafter{\BODY}}",
+          "\number\sgrid@width"
+        )
+      }%
+    }%
+    \leavevmode
+    \ifx\sgrid@valign\@empty
+      \raisebox{\sgrid@yoffset}{\usebox{\sgrid@box}}%
+    \else
+      \edef\sgrid@test{\sgrid@valign}%
+      \def\sgrid@base{base}%
+      \def\sgrid@top{t}%
+      \def\sgrid@center{c}%
+      \def\sgrid@bottom{b}%
+      \ifx\sgrid@test\sgrid@top
+        \raisebox{\dimexpr\ht\sgrid@box+\sgrid@yoffset\relax}{\usebox{\sgrid@box}}%
+      \else\ifx\sgrid@test\sgrid@center
+        \raisebox{\dimexpr.5\ht\sgrid@box-.5\dp\sgrid@box+\sgrid@yoffset\relax}{\usebox{\sgrid@box}}%
+      \else\ifx\sgrid@test\sgrid@bottom
+        \raisebox{\dimexpr-\dp\sgrid@box+\sgrid@yoffset\relax}{\usebox{\sgrid@box}}%
+      \else
+        \raisebox{\sgrid@yoffset}{\usebox{\sgrid@box}}%
+      \fi\fi\fi
+    \fi
+    \endgroup
+  }
 \else
-\NewEnviron{sintaxisgrid}[1][width=\linewidth]{%
-  \PackageError{sintaxismark-grid}{sintaxisgrid requires LuaLaTeX}{Compile with LuaLaTeX to use the experimental grid mode.}%
-}
+  \NewEnviron{sintaxisgrid}[1][width=\linewidth]{%
+    \PackageError{sintaxismark-grid}{sintaxisgrid requires LuaLaTeX}{Compile with LuaLaTeX to use the experimental grid mode.}%
+  }
 \fi
