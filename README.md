@@ -2,9 +2,12 @@
 
 `sintaxismark` is a LaTeX package for marking syntactic constituents and grammatical functions directly over running text. It is designed for grammar handouts, classroom examples, slides, and compact linguistic analyses where a full tree would be visually excessive.
 
-The package draws annotations with TikZ: lower open brackets, upper span lines, floating labels, underlining, arrowheads, and nested markings.
+The package has two complementary modes:
 
-Documentation status: this README and the files in `doc/` document `v0.6.21` — 2026-06-15.
+1. **Classic mode**: the original TikZ-overlay system based on commands such as `\spanline`, `\openbox`, `\tagbelow`, `\SES`, `\PVS`, `\OD`, `\MI`, etc. This mode draws directly over the current line.
+2. **Grid mode**: an experimental LuaLaTeX-only layout mode for longer examples. It reads a nested syntactic markup, lays the example out on a token grid, computes line breaks, and draws upper spans, lower boxes, tags, colors, arrowheads, and cut ends without diagonal lines.
+
+Documentation status: this README and the files in `doc/` document the classic mode up to `v0.6.23` and the experimental grid mode planned for `v0.7.0`.
 
 ## Features
 
@@ -15,9 +18,12 @@ Documentation status: this README and the files in `doc/` document `v0.6.21` —
 - Underline heads or marked items via `\synul`.
 - Use predefined shortcuts for common school-grammar labels and syntactic functions, such as `\SES`, `\PVS`, `\OD`, `\OI`, `\MI`, `\NN`, and `\NV`.
 - Use starred forms such as `\OD*{...}` or `\MI*{...}` to switch from a simple lower label to a lower open bracket.
-- Handle nested annotations with automatic depth propagation.
+- Handle nested annotations with automatic depth propagation in classic mode.
 - Work inside `gb4e` examples.
 - Use visual presets for teaching, printing, slides, and publication contexts.
+- Use the experimental `sintaxisgrid` environment for long or multiline examples.
+- Set global grid options with `\sintaxismarksetup{grid/<key>=<value>}`.
+- Override grid spacing, colors, arrows, and bracket ends locally.
 
 ## Requirements
 
@@ -29,9 +35,11 @@ Documentation status: this README and the files in `doc/` document `v0.6.21` —
 - `expl3`
 - `varwidth`
 
-For numbered linguistic examples, it works well with `gb4e`, but `gb4e` is not required by the package itself.
+The experimental grid mode also requires LuaLaTeX because the layout is computed in Lua. Classic mode can be used as before; grid mode will raise an error if the document is not compiled with LuaLaTeX.
 
-Because the package uses TikZ `remember picture`, compile your document twice.
+For numbered linguistic examples, `sintaxismark` works well with `gb4e`, but `gb4e` is not required by the package itself.
+
+Because the classic mode uses TikZ `remember picture`, compile documents twice when using classic overlays. Grid mode itself usually does not require two passes, but compiling twice is harmless when a document mixes both modes.
 
 ## Installation
 
@@ -56,7 +64,7 @@ The schema can also be changed inside the document:
 \setsintaxisschema{diapositivas}
 ```
 
-## Basic usage
+## Classic mode: basic usage
 
 ### Lower open brackets
 
@@ -83,7 +91,7 @@ The schema can also be changed inside the document:
 \synul{compró}
 ```
 
-## Shortcuts
+## Classic shortcuts
 
 The package defines shortcuts for frequently used labels. Some of the most common are:
 
@@ -131,9 +139,9 @@ Example:
 \end{document}
 ```
 
-Compile twice to stabilize the TikZ overlays.
+Compile twice to stabilize classic TikZ overlays.
 
-## Long examples and line wrapping
+## Long examples in classic mode
 
 For long examples, use `\SMlinewrap{...}`:
 
@@ -158,9 +166,143 @@ For manually split spans across two lines, use `\breakspan{...}{...}`. The first
   {\SES{\MI{quedaba en la planta baja}}}
 ```
 
-## Main graphical keys
+## Experimental grid mode
 
-Most commands accept an optional key-value argument:
+The grid mode is intended for examples whose annotations need to cross line breaks. It avoids diagonal lines by computing a token grid and drawing each segment on the correct visual line.
+
+Use it with the `sintaxisgrid` environment:
+
+```tex
+\begin{sintaxisgrid}[width=10cm]
+\SA{
+  \SES{Juan}
+  \PVS{
+    vio
+    \OD*{
+      \MD{un}
+      \N{tigre}
+    }
+  }
+}
+\end{sintaxisgrid}
+```
+
+The indentation is only for readability. The same example can be written compactly:
+
+```tex
+\begin{sintaxisgrid}[width=10cm]
+\SA{\SES{Juan}\PVS{vio \OD*{\MD{un}\N{tigre}}}}
+\end{sintaxisgrid}
+```
+
+What matters is the bracketing with braces, not the visual indentation.
+
+### Meaning of commands in grid mode
+
+Inside `sintaxisgrid`, commands are interpreted structurally:
+
+- `\SES`, `\ST`, `\SEC`, `\PVS`, `\PVC`, and `\OS` draw upper spans.
+- Starred commands such as `\OD*`, `\MI*`, and `\COMP*` draw lower open boxes.
+- Unstarred `\OD` and `\OI` draw lower underlined functions.
+- Labels such as `\MD`, `\N`, `\NN`, and `\NV` draw lower tags.
+
+The grid parser reads the nested markup, extracts visible tokens, infers spans, computes line breaks from `width`, and renders the result with TikZ.
+
+### Global grid options
+
+Grid options can be set globally with `\sintaxismarksetup`:
+
+```tex
+\sintaxismarksetup{
+  grid/lower-level-gap=0.75,
+  grid/lower-label-sep=0.18,
+  grid/token-pad-left=0.06,
+  grid/token-pad-right=0.06
+}
+```
+
+Available global grid keys include:
+
+```tex
+grid/upper-y-base
+grid/upper-leg
+grid/upper-level-gap
+grid/upper-label-sep
+grid/lower-y-base
+grid/lower-level-gap
+grid/lower-leg-top
+grid/lower-label-sep
+grid/tag-y-base
+grid/tag-level-gap
+grid/token-gap
+grid/token-pad-left
+grid/token-pad-right
+grid/linegap
+grid/line-base
+grid/line-lower-extra
+```
+
+For example, `grid/token-pad-left` and `grid/token-pad-right` move vertical bracket ends slightly away from the first and last token, leaving visual air next to words such as `un` or `sus`.
+
+### Local grid options
+
+The same geometry keys can be overridden locally in a single environment, without the `grid/` prefix:
+
+```tex
+\begin{sintaxisgrid}[width=10cm,lower-level-gap=0.50,token-pad-left=0.03]
+...
+\end{sintaxisgrid}
+```
+
+### Local options per mark
+
+Grid mode also accepts options on individual marks:
+
+```tex
+\begin{sintaxisgrid}[width=10cm]
+\SA{
+  \SES[color=blue]{Juan}
+  \PVS[color=black,arrow=right]{
+    vio
+    \OD*[color=red,no-leftend]{
+      \MD[color=gray]{un}
+      \N{tigre}
+    }
+  }
+}
+\end{sintaxisgrid}
+```
+
+Local mark options include:
+
+```tex
+color=red
+linecolor=red
+line-color=red
+labelcolor=blue
+label-color=blue
+textcolor=blue
+text-color=blue
+leftend=false
+rightend=false
+no-leftend
+no-rightend
+no-ends
+arrow=left
+arrow=right
+arrow=both
+arrow=none
+leftarrow
+rightarrow
+leftrightarrow
+no-arrow
+```
+
+`color` affects the line and the label of the mark. `labelcolor` changes only the label. The token text remains unaffected unless explicitly handled by a future extension.
+
+## Main graphical keys in classic mode
+
+Most classic commands accept an optional key-value argument:
 
 ```tex
 \openbox[color=blue,linew=1pt,boxd=4ex]{OD}{manzanas}
@@ -195,8 +337,9 @@ The documentation sources are stored in `doc/`:
 ## Notes
 
 - Load `gb4e` before `sintaxismark` when using both packages.
-- Compile twice because TikZ overlays rely on remembered positions.
-- In very long examples, prefer `\SMlinewrap`, `\openboxNB`, or manual splitting with `\breakspan`.
+- Compile twice when using classic TikZ overlays.
+- Use LuaLaTeX for `sintaxisgrid`.
+- In very long examples, prefer `sintaxisgrid`; for classic mode, use `\SMlinewrap`, `\openboxNB`, or manual splitting with `\breakspan`.
 
 ## License
 
