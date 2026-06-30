@@ -1,4 +1,7 @@
-%% sintaxismark.sty  v0.7.2 experimental monolithic (2026-06-29)
+%% sintaxismark.sty  v0.7.3 experimental monolithic (2026-06-30)
+%% Copyright (c) 2026 Pablo Damián Zdrojewski
+%% Released under the LaTeX Project Public License 1.3c or later.
+%% The Current Maintainer of this work is Pablo Damián Zdrojewski.
 %% CHANGE v0.6.23: Add experimental LuaLaTeX-only automatic splitting commands:
 %%   \autospanline[<width>]{<label>}{<plain text>} and
 %%   \autoopenbox[<width>]{<label>}{<plain text>}. These commands use
@@ -25,6 +28,7 @@
 %% CHANGE v0.6.18: Render ALL labels/tags in small caps via \textsc{}
 %% CHANGE v0.6.17: Increase default tagy for tagbelow labels (global and in presets)
 \NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{sintaxismark}[2026/06/30 v0.7.3 Syntactic annotations over running text]
 
 \newcommand*\syn@optschema{} 
 \DeclareOption{docencia}{\renewcommand*\syn@optschema{docencia}}
@@ -618,7 +622,6 @@
 
 \RequirePackage{environ}
 \RequirePackage{pgfkeys}
-\RequirePackage{luacode}
 \usetikzlibrary{calc}
 
 \newdimen\sgrid@width
@@ -643,8 +646,10 @@
 
 \ifdefined\directlua
 
+\RequirePackage{luacode}
+
 \begin{luacode*}
--- sintaxismark_grid.lua v0.7.0
+-- sintaxismark grid renderer v0.7.3
 -- Experimental grid/gloss-like renderer for sintaxismark.
 
 sintaxismark_grid = sintaxismark_grid or {}
@@ -930,7 +935,7 @@ local function draw_mark(m, positions, lines, ybases)
       table.insert(code, fmt(BS .. "node[anchor=north] at (%.3f,%.3f) {%s};", (x1+x2)/2, y, label))
     end
   end
-  return table.concat(code, string.char(10))
+  return table.concat(code, " ")
 end
 
 function SG.render(body, width_sp)
@@ -962,7 +967,7 @@ function SG.render(body, width_sp)
     if m.kind ~= "span" then table.insert(code, draw_mark(m, positions, lines, ybase)) end
   end
   table.insert(code, BS .. "end{tikzpicture}")
-  tex.sprint(table.concat(code, string.char(10)))
+  tex.sprint(table.concat(code, " "))
 end
 \end{luacode*}
 
@@ -998,8 +1003,6 @@ end
     \PackageError{sintaxismark}{sintaxisgrid requires LuaLaTeX}{Compile with LuaLaTeX to use the experimental grid mode.}%
   }
 \fi
-\makeatother
-
 \makeatother
 
 %% End of integrated grid mode.

@@ -1,5 +1,5 @@
 % sintaxismark-doc-es.tex
-% Documentación en español para sintaxismark.sty v0.7.2 experimental monolítico
+% Documentación en español para sintaxismark.sty v0.7.3 experimental monolítico
 % Compilar con LuaLaTeX si se usa sintaxisgrid.
 
 \documentclass[11pt,a4paper]{article}
@@ -13,20 +13,17 @@
 \usepackage{xcolor}
 \usepackage{listings}
 \usepackage[
+  pdfusetitle,
   colorlinks=true,
   linkcolor=blue!55!black,
   citecolor=blue!55!black,
   urlcolor=blue!65!black
 ]{hyperref}
 \usepackage{parskip}
-\usepackage{microtype}
+\setlength{\emergencystretch}{2em}
 \usepackage{array}
 \usepackage{gb4e}\noautomath
 
-% Permite compilar tanto desde la raíz del repositorio como desde doc/.
-\makeatletter
-\def\input@path{{./}{../}}
-\makeatother
 \usepackage[docencia]{sintaxismark}
 
 \lstset{
@@ -47,7 +44,7 @@
 
 \title{\pkg: documentación completa de uso}
 \author{Pablo Damián Zdrojewski}
-\date{Versión 0.7.2 experimental monolítica --- 2026-06-29}
+\date{Versión 0.7.3 experimental monolítica --- 2026-06-30}
 
 \begin{document}
 \maketitle
@@ -459,7 +456,7 @@ El entorno \texttt{sintaxisgrid} lee una estructura anidada completa, extrae tok
 
 \subsection{Opciones del entorno grid}
 
-\begin{longtable}{>{\ttfamily}p{3.2cm}p{9.7cm}}
+\begin{longtable}{>{\ttfamily}p{4.0cm}p{8.9cm}}
 \toprule
 Opción & Función \\
 \midrule
@@ -532,7 +529,7 @@ El renderizador grid usa actualmente constantes internas fijas ajustadas para pa
 \end{sintaxisgrid}
 \end{exe}
 
-Pueden aparecer advertencias del tipo \texttt{Missing character: There is no U+000A in font nullfont} en esta versión experimental del modo grid. No son fatales y no impiden generar el PDF.
+El renderizador de grilla emite el código TikZ generado sin caracteres de salto de línea incrustados, por lo que el uso normal no debería producir advertencias de caracteres ausentes.
 
 \section{Flujo de trabajo recomendado}
 
@@ -546,6 +543,7 @@ Pueden aparecer advertencias del tipo \texttt{Missing character: There is no U+0
 \section{Notas de versión}
 
 \begin{itemize}
+  \item \textbf{0.7.3 experimental}: agrega metadatos formales del paquete, restaura la compatibilidad del modo clásico con motores no Lua y elimina las advertencias espurias por caracteres de salto de línea del renderizador de grilla.
   \item \textbf{0.7.2 experimental}: archivo monolítico. \texttt{sintaxismark.sty} contiene el modo clásico, los auxiliares de corte automático y el modo grid con Lua embebido.
   \item \textbf{0.7.1 experimental}: corrige la captura del cuerpo de \texttt{sintaxisgrid}.
   \item \textbf{0.7.0 experimental}: introduce \texttt{sintaxisgrid}.

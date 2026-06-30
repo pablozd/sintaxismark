@@ -7,7 +7,7 @@ The package has two complementary modes:
 1. **Classic mode**: the original TikZ-overlay system based on commands such as `\spanline`, `\openbox`, `\tagbelow`, `\SES`, `\PVS`, `\OD`, `\MI`, etc. This mode draws directly over the current line.
 2. **Grid mode**: an experimental LuaLaTeX-only layout mode for longer examples. It reads a nested syntactic markup, lays the example out on a token grid, computes line breaks, and draws upper spans, lower boxes, tags, colors, arrowheads, and cut ends without diagonal lines.
 
-Documentation status: this README and the files in `doc/` document the classic mode up to `v0.6.23` and the experimental grid mode planned for `v0.7.0`.
+Documentation status: this README and the files in `doc/` document version `v0.7.3`, including the classic mode and the experimental grid mode.
 
 ## Features
 
@@ -34,8 +34,9 @@ Documentation status: this README and the files in `doc/` document the classic m
 - `xcolor`
 - `expl3`
 - `varwidth`
+- `environ`
 
-The experimental grid mode also requires LuaLaTeX because the layout is computed in Lua. Classic mode can be used as before; grid mode will raise an error if the document is not compiled with LuaLaTeX.
+The experimental grid mode and the automatic splitting commands require LuaLaTeX because their layout is computed in Lua. Under LuaLaTeX, the package also loads `luacode` for the embedded grid renderer. Classic mode works with standard LaTeX engines; Lua-only commands raise an explanatory error when another engine is used.
 
 For numbered linguistic examples, `sintaxismark` works well with `gb4e`, but `gb4e` is not required by the package itself.
 
@@ -336,6 +337,13 @@ The documentation sources and generated PDFs are stored in `doc/`:
 - [`doc/sintaxismark-doc-en.pdf`](doc/sintaxismark-doc-en.pdf)
 - [`doc/sintaxismark-doc-es.pdf`](doc/sintaxismark-doc-es.pdf)
 
+Build both manuals from the repository root with:
+
+```sh
+latexmk -lualatex -outdir=doc doc/sintaxismark-doc-en.tex
+latexmk -lualatex -outdir=doc doc/sintaxismark-doc-es.tex
+```
+
 ## Notes
 
 - Load `gb4e` before `sintaxismark` when using both packages.
@@ -348,3 +356,9 @@ The documentation sources and generated PDFs are stored in `doc/`:
 `sintaxismark` is distributed under the LaTeX Project Public License, version 1.3c or later. See [`LICENSE`](LICENSE).
 
 The LPPL maintenance status is `maintained`; the Current Maintainer is Pablo Damián Zdrojewski.
+
+## Author and support
+
+Copyright 2026 Pablo Damián Zdrojewski.
+
+Source repository and issue tracker: <https://github.com/pablozd/sintaxismark>

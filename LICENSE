@@ -16,10 +16,11 @@ The Current Maintainer of this work is Pablo Damián Zdrojewski.
 
 This work consists of the files:
 
+  LICENSE
+  README.md
   sintaxismark.sty
-  sintaxismark-grid.sty
-  sintaxismark_grid.lua
-  demo.tex
+  doc/demo.tex
+  doc/demo-monolithic.tex
   doc/sintaxismark-doc-en.tex
   doc/sintaxismark-doc-es.tex
   doc/sintaxismark-doc-en.pdf

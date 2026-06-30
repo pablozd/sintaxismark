@@ -1,5 +1,5 @@
 % sintaxismark-doc-en.tex
-% English documentation for sintaxismark.sty v0.7.2 experimental monolithic
+% English documentation for sintaxismark.sty v0.7.3 experimental monolithic
 % Compile with LuaLaTeX when using sintaxisgrid.
 
 \documentclass[11pt,a4paper]{article}
@@ -13,20 +13,17 @@
 \usepackage{xcolor}
 \usepackage{listings}
 \usepackage[
+  pdfusetitle,
   colorlinks=true,
   linkcolor=blue!55!black,
   citecolor=blue!55!black,
   urlcolor=blue!65!black
 ]{hyperref}
 \usepackage{parskip}
-\usepackage{microtype}
+\setlength{\emergencystretch}{2em}
 \usepackage{array}
 \usepackage{gb4e}\noautomath
 
-% Allow compilation both from the repository root and from doc/.
-\makeatletter
-\def\input@path{{./}{../}}
-\makeatother
 \usepackage[docencia]{sintaxismark}
 
 \lstset{
@@ -47,7 +44,7 @@
 
 \title{\pkg: complete user documentation}
 \author{Pablo Damián Zdrojewski}
-\date{Experimental monolithic version 0.7.2 --- 2026-06-29}
+\date{Experimental monolithic version 0.7.3 --- 2026-06-30}
 
 \begin{document}
 \maketitle
@@ -459,7 +456,7 @@ The \texttt{sintaxisgrid} environment reads a full nested structure, extracts to
 
 \subsection{Grid environment options}
 
-\begin{longtable}{>{\ttfamily}p{3.2cm}p{9.7cm}}
+\begin{longtable}{>{\ttfamily}p{4.0cm}p{8.9cm}}
 \toprule
 Option & Meaning \\
 \midrule
@@ -532,7 +529,7 @@ The grid renderer currently uses fixed internal constants tuned to resemble clas
 \end{sintaxisgrid}
 \end{exe}
 
-Warnings such as \texttt{Missing character: There is no U+000A in font nullfont} may appear in this experimental grid version. They are not fatal and do not prevent PDF generation.
+The grid renderer emits its generated TikZ code without embedded newline character tokens, so normal use should not produce missing-character warnings.
 
 \section{Recommended workflow}
 
@@ -546,6 +543,7 @@ Warnings such as \texttt{Missing character: There is no U+000A in font nullfont}
 \section{Version notes}
 
 \begin{itemize}
+  \item \textbf{0.7.3 experimental}: adds formal package metadata, restores classic-mode compatibility with non-Lua engines, and removes spurious newline-character warnings from the grid renderer.
   \item \textbf{0.7.2 experimental}: monolithic file. \texttt{sintaxismark.sty} contains classic mode, automatic split helpers, and grid mode with embedded Lua.
   \item \textbf{0.7.1 experimental}: fixes body capture in \texttt{sintaxisgrid}.
   \item \textbf{0.7.0 experimental}: introduces \texttt{sintaxisgrid}.
