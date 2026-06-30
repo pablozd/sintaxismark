@@ -1,7 +1,6 @@
 % sintaxismark-doc-en.tex
-% English documentation for sintaxismark.sty v0.7.0 experimental
-% Classic mode: compile twice when using TikZ overlays.
-% Grid mode: requires LuaLaTeX.
+% English documentation for sintaxismark.sty v0.7.2 experimental monolithic
+% Compile with LuaLaTeX when using sintaxisgrid.
 
 \documentclass[11pt,a4paper]{article}
 
@@ -18,7 +17,7 @@
 \usepackage{microtype}
 \usepackage{gb4e}\noautomath
 
-\usepackage{sintaxismark}
+\usepackage[docencia]{sintaxismark}
 
 \lstset{
   language=[LaTeX]TeX,
@@ -31,9 +30,9 @@
   commentstyle=\color{gray!70!black}
 }
 
-\title{\texttt{sintaxismark}: English Documentation}
-\author{}
-\date{Version 0.7.0 experimental --- 2026-06-29}
+\title{\texttt{sintaxismark}: documentation}
+\author{Pablo Damián Zdrojewski}
+\date{Experimental monolithic version 0.7.2 --- 2026-06-29}
 
 \begin{document}
 \maketitle
@@ -41,44 +40,34 @@
 
 \section{Overview}
 
-\texttt{sintaxismark} is a LaTeX package for annotating syntactic constituents, grammatical functions, heads, and spans directly over running text. It is intended for teaching materials, grammar handouts, slides, compact linguistic examples, and analyses where a full syntactic tree would be unnecessary or visually too heavy.
+\texttt{sintaxismark} is a LaTeX package for marking syntactic constituents, grammatical functions, and heads directly over running text. It is intended for grammar teaching materials, exercises, slides, and compact linguistic analyses.
 
-The package has two complementary modes:
+Experimental version 0.7.2 uses one main file, \texttt{sintaxismark.sty}. This file contains both the classic mode and the experimental \texttt{grid} mode. To use the monolithic version, copy \texttt{sintaxismark.sty} to the same directory as your document.
+
+\section{Two modes}
 
 \begin{enumerate}
-  \item \textbf{Classic mode}: the original TikZ-overlay system. It uses commands such as \verb|\spanline|, \verb|\openbox|, \verb|\tagbelow|, \verb|\SES|, \verb|\PVS|, \verb|\OD|, \verb|\MI|, etc. It draws directly over the current line.
-  \item \textbf{Grid mode}: an experimental LuaLaTeX-only mode for long or multiline examples. It reads nested syntactic markup, extracts tokens, computes line breaks, and draws the analysis on a token grid. This prevents diagonal lines when a mark crosses a line break.
+  \item \textbf{Classic mode}: uses TikZ overlays with commands such as \verb|\spanline|, \verb|\openbox|, \verb|\tagbelow|, \verb|\SES|, \verb|\PVS|, \verb|\OD|, \verb|\MI|, etc. It is suitable for short examples or for carefully controlled manual markup.
+  \item \textbf{Grid mode}: uses the \verb|sintaxisgrid| environment. It reads a nested syntactic structure, extracts tokens, computes line breaks, and draws the whole analysis on a grid. It is intended for long or multiline examples because it avoids diagonal lines when a mark crosses a line break.
 \end{enumerate}
 
-Classic mode is preserved for compatibility. Grid mode adds an alternative workflow for longer and more configurable analyses.
-
-\section{Requirements}
-
-The package loads or requires the following components:
-
-\begin{itemize}
-  \item \texttt{tikz}, with the \texttt{calc} and \texttt{arrows.meta} libraries;
-  \item \texttt{xparse};
-  \item \texttt{xcolor};
-  \item \texttt{expl3};
-  \item \texttt{varwidth}.
-\end{itemize}
-
-Grid mode additionally requires LuaLaTeX, because layout computation is performed in Lua. If \texttt{sintaxisgrid} is used with pdfLaTeX or XeLaTeX, the package should raise an error.
-
-The package works well with \texttt{gb4e}, but \texttt{gb4e} is not required unless numbered linguistic examples are needed.
-
-Because classic mode uses TikZ's \texttt{remember picture} mechanism, documents should normally be compiled twice when classic overlays are used. Grid mode itself usually does not require two passes, but compiling twice is harmless when both modes are mixed.
+Classic mode is preserved for compatibility. Grid mode is experimental and requires LuaLaTeX.
 
 \section{Loading the package}
-
-Place \texttt{sintaxismark.sty} in the same directory as your document or install it in your local TeX tree. Then load it in the preamble:
 
 \begin{lstlisting}
 \usepackage{sintaxismark}
 \end{lstlisting}
 
-You may also select a visual preset at load time:
+With \texttt{gb4e}, load \texttt{gb4e} first:
+
+\begin{lstlisting}
+\usepackage{gb4e}
+\noautomath
+\usepackage{sintaxismark}
+\end{lstlisting}
+
+A classic visual preset can also be selected:
 
 \begin{lstlisting}
 \usepackage[docencia]{sintaxismark}
@@ -87,13 +76,9 @@ You may also select a visual preset at load time:
 \usepackage[publicacion]{sintaxismark}
 \end{lstlisting}
 
-The active schema can also be changed later:
+The presets adjust classic mode. In this experimental version, grid mode uses internal spacing values that were tuned to approximate the classic settings, especially \verb|liney|, \verb|boxd|, \verb|boxsep|, \verb|tagy|, and \verb|nestedgap|.
 
-\begin{lstlisting}
-\setsintaxisschema{diapositivas}
-\end{lstlisting}
-
-\section{Minimal classic-mode example}
+\section{Minimal classic example}
 
 \begin{lstlisting}
 \documentclass{article}
@@ -103,183 +88,45 @@ The active schema can also be changed later:
 \begin{document}
 
 \begin{exe}
-\ex \SES{Juan} \PVS{\NV{bought} \OD{apples}}.
+\ex \SES{Juan} \PVS{\NV{compró} \OD{manzanas}}.
 \end{exe}
 
 \end{document}
 \end{lstlisting}
 
-\section{Core classic-mode commands}
+Because classic mode uses TikZ \texttt{remember picture}, it is usually best to compile twice.
 
-\subsection{Lower open brackets: \texttt{\textbackslash openbox}}
-
-\begin{lstlisting}
-\openbox{OD}{Juan bought apples}
-\end{lstlisting}
-
-The first argument is the label. The second argument is the annotated text. Optional styling keys may be supplied in square brackets:
-
-\begin{lstlisting}
-\openbox[color=blue,linew=1pt,boxd=4ex]{OD}{apples}
-\end{lstlisting}
-
-\subsection{Upper span lines: \texttt{\textbackslash spanline}}
-
-\begin{lstlisting}
-\spanline{SES}{Juan} \spanline{PVS}{bought apples}
-\end{lstlisting}
-
-This command draws an upper horizontal line with vertical ends and a label above the span.
-
-\subsection{Floating labels: \texttt{\textbackslash tagabove} and \texttt{\textbackslash tagbelow}}
-
-\begin{lstlisting}
-\tagabove{ST}{Juan bought apples}
-\tagbelow{NN}{Juan}
-\end{lstlisting}
-
-\subsection{Underlining: \texttt{\textbackslash synul}}
-
-\begin{lstlisting}
-\synul{bought}
-\end{lstlisting}
-
-This is useful for marking heads or nuclei.
-
-\section{Predefined shortcuts}
-
-The package defines shortcuts for frequent syntactic and school-grammar labels.
+\section{Main shortcuts}
 
 \begin{longtable}{ll}
 \toprule
-Command & Default label \\
+Command & Visual function \\
 \midrule
-\verb|\SES{...}| & \textsc{ses} \\
-\verb|\ST{...}| & \textsc{st} \\
-\verb|\SEC{...}| & \textsc{sec} \\
-\verb|\PVS{...}| & \textsc{pvs} \\
-\verb|\PVC{...}| & \textsc{pvc} \\
-\verb|\OS{...}| & \textsc{os} \\
-\verb|\OD{...}| & \textsc{od}, with underline \\
-\verb|\OI{...}| & \textsc{oi}, with underline \\
-\verb|\MD{...}| & \textsc{md} \\
-\verb|\MI{...}| & \textsc{mi} \\
-\verb|\N{...}| & \textsc{n} \\
-\verb|\NN{...}| & \textsc{nn}, with underline \\
-\verb|\NV{...}| & \textsc{nv}, with underline \\
-\verb|\NP{...}| & \textsc{np} \\
-\verb|\NA{...}| & \textsc{na} \\
-\verb|\NAD{...}| & \textsc{nadv} \\
+\verb|\SES{...}| & simple explicit subject, upper span \\
+\verb|\ST{...}| & null subject, upper span \\
+\verb|\SEC{...}| & compound explicit subject, upper span \\
+\verb|\PVS{...}| & simple verbal predicate, upper span \\
+\verb|\PVC{...}| & compound verbal predicate, upper span \\
+\verb|\OS{...}| & sentence, upper span \\
+\verb|\OD{...}| & direct object, lower label with underline \\
+\verb|\OD*{...}| & direct object, lower open box \\
+\verb|\OI{...}| & indirect object, lower label with underline \\
+\verb|\OI*{...}| & indirect object, lower open box \\
+\verb|\MD{...}| & direct modifier, lower label \\
+\verb|\MI{...}| & indirect modifier, lower label \\
+\verb|\MI*{...}| & indirect modifier, lower open box \\
+\verb|\N{...}| & head, lower label \\
+\verb|\NN{...}| & nominal head, lower label with underline \\
+\verb|\NV{...}| & verbal head, lower label with underline \\
 \bottomrule
 \end{longtable}
-
-Additional dual shortcuts include \verb|\CCL|, \verb|\COMP|, \verb|\CAg|, \verb|\CREG|, \verb|\CSim|, \verb|\CL|, \verb|\CM|, \verb|\PSO|, \verb|\PSNO|, \verb|\POO|, \verb|\PONO|, \verb|\ACT|, \verb|\ACL|, \verb|\ACM|, \verb|\ACF|, \verb|\ACC|, \verb|\ACCant|, \verb|\ACI|, \verb|\ACFin|, \verb|\MG|, \verb|\Ap|, \verb|\MF|, \verb|\IPCR|, and \verb|\Incl|.
-
-\section{Starred and unstarred forms}
-
-Since version 0.6.19, many shortcuts have dual behavior:
-
-\begin{itemize}
-  \item the unstarred form uses a lower floating label, usually through \verb|\tagbelow|;
-  \item the starred form uses a lower open bracket, through \verb|\openbox|.
-\end{itemize}
-
-\begin{lstlisting}
-\OD{apples}     % lower tag + underline
-\OD*{apples}    % lower open bracket
-
-\MI{of linen}   % lower tag
-\MI*{of linen}  % lower open bracket
-\end{lstlisting}
-
-\section{Visual schemas}
-
-The package includes four schemas:
-
-\begin{longtable}{ll}
-\toprule
-Schema & Intended use \\
-\midrule
-\texttt{docencia} & classroom materials and exercises \\
-\texttt{impresion} & compact printed handouts \\
-\texttt{diapositivas} & slides and projected material \\
-\texttt{publicacion} & more compact publication-oriented output \\
-\bottomrule
-\end{longtable}
-
-\section{Classic-mode graphical keys}
-
-Most classic commands accept optional key-value settings:
-
-\begin{lstlisting}
-\openbox[color=blue,linew=1pt,boxd=4ex]{OD}{apples}
-\spanline[color=red,liney=3ex]{SES}{Juan}
-\tagbelow[tagx=0.5ex,tagy=2ex]{MD}{the}
-\end{lstlisting}
-
-\begin{longtable}{ll}
-\toprule
-Key & Function \\
-\midrule
-\texttt{color} & annotation color \\
-\texttt{linew} & line width \\
-\texttt{liney} & vertical position of upper span lines \\
-\texttt{linegap} & gap between text and upper vertical ends \\
-\texttt{labsep} & separation between upper span line and label \\
-\texttt{boxd} & depth of lower open brackets \\
-\texttt{boxsep} & separation between lower bracket and label \\
-\texttt{labelsep} & general label separation override \\
-\texttt{labelsepboxes} & label separation override for boxes \\
-\texttt{nestedgap} & extra gap used for nested annotations \\
-\texttt{labheight} & estimated label height used in spacing calculations \\
-\texttt{tagy} & vertical position of floating tags \\
-\texttt{tagx} & horizontal offset of floating tags \\
-\texttt{underw} & underline width \\
-\texttt{labelalign} & label alignment: \texttt{left}, \texttt{center}, or \texttt{right} \\
-\texttt{leftend}, \texttt{rightend} & show or hide vertical ends \\
-\texttt{leftarrow}, \texttt{rightarrow} & add arrowheads \\
-\texttt{arrowlen} & arrowhead length \\
-\texttt{arrowtip} & TikZ arrow tip type \\
-\texttt{arrowscale} & arrowhead scale \\
-\texttt{arrowinset} & arrowhead inset \\
-\bottomrule
-\end{longtable}
-
-\section{Long examples in classic mode}
-
-For examples that need to wrap across lines, use \verb|\SMlinewrap|:
-
-\begin{lstlisting}
-\begin{exe}
-\ex \SMlinewrap{The \MI{department of some deteriorated three-story blocks} was on the ground floor.}
-\end{exe}
-\end{lstlisting}
-
-If a span should not be broken across a line boundary, use the no-break variants:
-
-\begin{lstlisting}
-\openboxNB{MI}{department of some deteriorated blocks}
-\spanlineNB{SES}{The department of some deteriorated blocks}
-\end{lstlisting}
-
-The command \verb|\breakspan| is useful when a span must be manually split into two visual parts. The first argument is rendered as a right-cut span; the second as a left-cut span.
-
-\begin{lstlisting}
-\breakspan
-  {\SES{\MI{The department of some blocks}}}
-  {\SES{\MI{was on the ground floor}}}
-\end{lstlisting}
 
 \section{Experimental grid mode}
-
-Grid mode is designed for long or multiline examples. Unlike classic mode, it does not draw each mark immediately. It first reads the whole environment body, extracts tokens, computes the range of each mark, determines line breaks according to the available width, and then draws the whole analysis.
-
-This avoids diagonal lines when a \verb|\spanline| or \verb|\openbox| crosses a line break.
 
 \subsection{Basic example}
 
 \begin{lstlisting}
-\begin{sintaxisgrid}[width=10cm]
+\begin{sintaxisgrid}[width=10cm,valign=base]
 \SA{
   \SES{Juan}
   \PVS{
@@ -293,178 +140,79 @@ This avoids diagonal lines when a \verb|\spanline| or \verb|\openbox| crosses a 
 \end{sintaxisgrid}
 \end{lstlisting}
 
-Vertical indentation has no structural value. It is only for readability. The same example can be written on one line:
+Indentation has no structural value. Structure is expressed by commands and braces. The same example can be written on one line:
 
 \begin{lstlisting}
 \begin{sintaxisgrid}[width=10cm]
 \SA{\SES{Juan}\PVS{saw \OD*{\MD{a}\N{tiger}}}}
 \end{sintaxisgrid}
 \end{lstlisting}
-
-The braces are what matters, because they express which constituent contains which material.
-
-\subsection{Command interpretation inside \texttt{sintaxisgrid}}
-
-Inside \verb|sintaxisgrid|, commands are not executed as in classic mode. They are interpreted structurally:
-
-\begin{itemize}
-  \item \verb|\SES|, \verb|\ST|, \verb|\SEC|, \verb|\PVS|, \verb|\PVC|, and \verb|\OS| produce upper spans.
-  \item Starred forms such as \verb|\OD*|, \verb|\MI*|, or \verb|\COMP*| produce lower open boxes.
-  \item Unstarred \verb|\OD| and \verb|\OI| produce lower underlined functions.
-  \item \verb|\MD|, \verb|\N|, \verb|\NN|, \verb|\NV|, and similar labels produce simple lower tags.
-\end{itemize}
 
 \subsection{Use with \texttt{gb4e}}
 
 \begin{lstlisting}
 \begin{exe}
 \ex
-\begin{sintaxisgrid}[width=\linewidth]
+\begin{sintaxisgrid}[width=.92\linewidth,valign=base,yoffset=0pt]
 \SA{\SES{Juan}\PVS{saw \OD*{\MD{a}\N{tiger}}}}
 \end{sintaxisgrid}
 \end{exe}
 \end{lstlisting}
 
-The environment baseline is intended to align the \texttt{gb4e} example number with the first line of the example. If a manual adjustment is needed, use \verb|yoffset|:
+\verb|valign=base| aligns the environment with the example baseline. If the \texttt{gb4e} number is slightly too high or too low, use \verb|yoffset|:
 
 \begin{lstlisting}
-\begin{sintaxisgrid}[width=\linewidth,yoffset=0.4ex]
+\begin{sintaxisgrid}[width=.92\linewidth,valign=base,yoffset=0.2ex]
 ...
 \end{sintaxisgrid}
 \end{lstlisting}
 
-\subsection{Global grid options}
+\subsection{Environment options}
 
-Global options are set with \verb|\sintaxismarksetup| and the \verb|grid/| prefix:
-
-\begin{lstlisting}
-\sintaxismarksetup{
-  grid/lower-level-gap=0.75,
-  grid/lower-label-sep=0.18,
-  grid/token-pad-left=0.06,
-  grid/token-pad-right=0.06
-}
-\end{lstlisting}
-
-The main global keys are:
+In the current monolithic version, the stable environment options are:
 
 \begin{longtable}{ll}
 \toprule
-Key & Function \\
+Option & Function \\
 \midrule
-\texttt{grid/width} & default environment width \\
-\texttt{grid/valign} & vertical alignment: \texttt{base}, \texttt{t}, \texttt{c}, \texttt{b} \\
-\texttt{grid/yoffset} & manual vertical correction \\
-\texttt{grid/upper-y-base} & distance between text and start of upper vertical ends \\
-\texttt{grid/upper-leg} & length of upper vertical ends \\
-\texttt{grid/upper-level-gap} & separation between overlapping upper levels \\
-\texttt{grid/upper-label-sep} & separation between upper line and label \\
-\texttt{grid/lower-y-base} & distance from text to first lower zone \\
-\texttt{grid/lower-level-gap} & separation between lower levels \\
-\texttt{grid/lower-leg-top} & starting height of lower vertical ends \\
-\texttt{grid/lower-label-sep} & separation between lower box and label \\
-\texttt{grid/tag-y-base} & base distance of simple lower tags \\
-\texttt{grid/tag-level-gap} & separation between simple lower tag levels \\
-\texttt{grid/token-gap} & horizontal separation between tokens \\
-\texttt{grid/token-pad-left} & extra space before the first token of a mark \\
-\texttt{grid/token-pad-right} & extra space after the last token of a mark \\
-\texttt{grid/linegap} & general vertical separation between lines \\
-\texttt{grid/line-base} & base vertical space reserved per line \\
-\texttt{grid/line-lower-extra} & extra space induced by lower levels \\
+\verb|width=<dimension>| & available width for computing line breaks \\
+\verb|valign=base| & baseline alignment, recommended with \texttt{gb4e} \\
+\verb|valign=t| & top alignment \\
+\verb|valign=c| & centered alignment \\
+\verb|valign=b| & bottom alignment \\
+\verb|yoffset=<dimension>| & fine manual vertical adjustment \\
 \bottomrule
 \end{longtable}
 
-\subsection{Local environment options}
+\subsection{Visual spacing}
 
-In a particular \verb|sintaxisgrid| instance, grid keys can be overridden without the \verb|grid/| prefix:
-
-\begin{lstlisting}
-\begin{sintaxisgrid}[width=10cm,lower-level-gap=0.50,token-pad-left=0.03]
-...
-\end{sintaxisgrid}
-\end{lstlisting}
-
-\subsection{Local mark options}
-
-Options can also be supplied to a particular mark:
-
-\begin{lstlisting}
-\begin{sintaxisgrid}[width=10cm]
-\SA{
-  \SES[color=blue]{Juan}
-  \PVS[color=black,arrow=right]{
-    saw
-    \OD*[color=red,no-leftend]{
-      \MD[color=gray]{a}
-      \N{tiger}
-    }
-  }
-}
-\end{sintaxisgrid}
-\end{lstlisting}
-
-These options affect only the mark on which they appear. Available local options include:
-
-\begin{longtable}{ll}
-\toprule
-Local option & Function \\
-\midrule
-\texttt{color=<color>} & line and label color \\
-\texttt{linecolor=<color>} / \texttt{line-color=<color>} & line color \\
-\texttt{labelcolor=<color>} / \texttt{label-color=<color>} & label color \\
-\texttt{textcolor=<color>} / \texttt{text-color=<color>} & alias for label color \\
-\texttt{leftend=false} & remove the left vertical end \\
-\texttt{rightend=false} & remove the right vertical end \\
-\texttt{no-leftend} & alias for \texttt{leftend=false} \\
-\texttt{no-rightend} & alias for \texttt{rightend=false} \\
-\texttt{no-ends} & remove both vertical ends \\
-\texttt{arrow=left} & left arrowhead \\
-\texttt{arrow=right} & right arrowhead \\
-\texttt{arrow=both} & arrowheads on both ends \\
-\texttt{arrow=none} & no arrowheads \\
-\texttt{leftarrow} & alias for \texttt{arrow=left} \\
-\texttt{rightarrow} & alias for \texttt{arrow=right} \\
-\texttt{leftrightarrow} & alias for \texttt{arrow=both} \\
-\texttt{no-arrow} & alias for \texttt{arrow=none} \\
-\bottomrule
-\end{longtable}
-
-\subsection{Example with local options}
-
-\begin{lstlisting}
-\begin{sintaxisgrid}[width=10cm]
-\SA{
-  \SES[no-ends,color=blue!60!black]{Juan}
-  \PVS[arrow=both,color=orange!80!black]{
-    saw
-    \OD*[color=purple,rightend=false]{
-      \MD{a}
-      \N{tiger}
-      \MI*[color=red!70!black,arrow=left]{
-        with \COMP*[color=teal,no-ends]{sharp claws}
-      }
-    }
-  }
-}
-\end{sintaxisgrid}
-\end{lstlisting}
-
-\section{Practical notes}
+The grid renderer uses internal values tuned to resemble classic mode. In particular:
 
 \begin{itemize}
-  \item Use LuaLaTeX when using \verb|sintaxisgrid|.
-  \item Compile twice when classic-mode labels or lines appear misplaced on the first run.
-  \item When using \texttt{gb4e}, load \texttt{gb4e} before \texttt{sintaxismark}.
-  \item For long examples, grid mode is preferable. In classic mode, use \verb|\SMlinewrap|, \verb|\openboxNB|, \verb|\spanlineNB|, or \verb|\breakspan|.
-  \item In grid mode, code indentation is not structural: only commands and braces are structural.
+  \item upper spans are placed with spacing comparable to \verb|liney| and \verb|labsep|;
+  \item lower boxes are placed with depth comparable to \verb|boxd| and \verb|boxsep|;
+  \item simple lower tags use spacing comparable to \verb|tagy|;
+  \item nested levels attempt to reproduce the effect of \verb|nestedgap| and the automatic vertical reservation used in classic mode.
 \end{itemize}
+
+Since grid mode computes one complete box, it does not depend on TikZ \texttt{remember picture} and does not need two compilation passes for placement. Warnings such as \texttt{Missing character: There is no U+000A in font nullfont} may appear in this experimental version and do not prevent PDF generation.
+
+\section{Included demo}
+
+The file \texttt{demo-monolithic.tex} tests the monolithic version with \texttt{gb4e}, classic mode, and grid mode. Compile with:
+
+\begin{lstlisting}
+lualatex demo-monolithic.tex
+\end{lstlisting}
+
+To check that the single file is self-contained, copy only \texttt{sintaxismark.sty} and \texttt{demo-monolithic.tex} to a temporary directory and compile there.
 
 \section{Version notes}
 
-Version 0.6.21 improves nested \verb|\tagbelow| spacing by chaining depth reports in the same way as \verb|\openbox|.
-
-Version 0.6.23 adds experimental automatic splitting commands for plain text: \verb|\autospanline| and \verb|\autoopenbox|.
-
-The experimental 0.7.0 grid mode introduces the \verb|sintaxisgrid| environment, LuaLaTeX-based grid layout, global options through \verb|\sintaxismarksetup{grid/...}|, and local mark options for color, arrows, and bracket endings.
+\begin{itemize}
+  \item \textbf{0.7.2 experimental}: monolithic version. \texttt{sintaxismark.sty} contains classic mode and grid mode with embedded Lua.
+  \item \textbf{0.7.1 experimental}: fixes body capture in \verb|sintaxisgrid|.
+  \item \textbf{0.7.0 experimental}: introduces \verb|sintaxisgrid|.
+\end{itemize}
 
 \end{document}
