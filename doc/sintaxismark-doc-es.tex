@@ -1,7 +1,6 @@
 % sintaxismark-doc-es.tex
-% Documentación en español para sintaxismark.sty v0.7.0 experimental
-% Modo clásico: compilar dos veces si se usan overlays de TikZ.
-% Modo grid: requiere LuaLaTeX.
+% Documentación en español para sintaxismark.sty v0.7.2 experimental monolítico
+% Compilar con LuaLaTeX si se usa sintaxisgrid.
 
 \documentclass[11pt,a4paper]{article}
 
@@ -18,7 +17,7 @@
 \usepackage{microtype}
 \usepackage{gb4e}\noautomath
 
-\usepackage{sintaxismark}
+\usepackage[docencia]{sintaxismark}
 
 \lstset{
   language=[LaTeX]TeX,
@@ -32,53 +31,43 @@
 }
 
 \title{\texttt{sintaxismark}: documentación}
-\author{}
-\date{Versión 0.7.0 experimental --- 2026-06-29}
+\author{Pablo Damián Zdrojewski}
+\date{Versión 0.7.2 experimental monolítica --- 2026-06-29}
 
 \begin{document}
 \maketitle
 \tableofcontents
 
-\section{Introducción}
+\section{Descripción general}
 
-\texttt{sintaxismark} es un paquete de LaTeX para marcar constituyentes sintácticos, funciones gramaticales, núcleos y tramos directamente sobre texto corrido. Está pensado para materiales de gramática, ejemplos de clase, diapositivas y análisis lingüísticos compactos en los que un árbol completo sería innecesario o visualmente demasiado pesado.
+\texttt{sintaxismark} es un paquete de LaTeX para marcar constituyentes sintácticos, funciones gramaticales y núcleos directamente sobre texto corrido. Está pensado para materiales de gramática, ejercicios, diapositivas y análisis lingüísticos compactos.
 
-El paquete tiene dos modos de uso complementarios:
+La versión experimental 0.7.2 usa un único archivo principal, \texttt{sintaxismark.sty}. Ese archivo contiene tanto el modo clásico como el modo \texttt{grid}; por lo tanto, para usar la versión monolítica basta con copiar \texttt{sintaxismark.sty} al directorio del documento.
+
+\section{Dos modos de uso}
 
 \begin{enumerate}
-  \item \textbf{Modo clásico}: es el sistema original, basado en superposiciones de TikZ. Usa comandos como \verb|\spanline|, \verb|\openbox|, \verb|\tagbelow|, \verb|\SES|, \verb|\PVS|, \verb|\OD|, \verb|\MI|, etc. Dibuja directamente sobre la línea actual.
-  \item \textbf{Modo grid}: es un modo experimental, solo para LuaLaTeX, pensado para ejemplos largos o multilínea. Lee una estructura sintáctica anidada, extrae tokens, calcula cortes de línea y dibuja el análisis sobre una grilla. De este modo evita líneas diagonales cuando una marca atraviesa más de un renglón.
+  \item \textbf{Modo clásico}: usa superposiciones de TikZ con comandos como \verb|\spanline|, \verb|\openbox|, \verb|\tagbelow|, \verb|\SES|, \verb|\PVS|, \verb|\OD|, \verb|\MI|, etc. Es adecuado para ejemplos breves o para marcas manuales muy controladas.
+  \item \textbf{Modo grid}: usa el entorno \verb|sintaxisgrid|. Lee una estructura anidada, extrae tokens, calcula saltos de línea y dibuja la anotación completa sobre una grilla. Está pensado para ejemplos largos o multilínea, porque evita diagonales cuando una marca atraviesa un salto de línea.
 \end{enumerate}
 
-El modo clásico se conserva por compatibilidad. El modo grid agrega una vía alternativa para análisis más largos y configurables.
-
-\section{Dependencias}
-
-El paquete carga o requiere los siguientes componentes:
-
-\begin{itemize}
-  \item \texttt{tikz}, con las bibliotecas \texttt{calc} y \texttt{arrows.meta};
-  \item \texttt{xparse};
-  \item \texttt{xcolor};
-  \item \texttt{expl3};
-  \item \texttt{varwidth}.
-\end{itemize}
-
-El modo grid requiere además LuaLaTeX, porque el cálculo de la disposición se realiza en Lua. Si se usa \texttt{sintaxisgrid} con pdfLaTeX o XeLaTeX, el paquete debe emitir un error.
-
-El paquete funciona bien con \texttt{gb4e}, aunque \texttt{gb4e} no es obligatorio salvo que se quieran ejemplos lingüísticos numerados.
-
-Como el modo clásico usa el mecanismo \texttt{remember picture} de TikZ, normalmente conviene compilar dos veces cuando se usan marcas clásicas. El modo grid, por sí solo, normalmente no requiere dos pasadas, pero dos compilaciones no producen problemas.
+El modo clásico se conserva por compatibilidad. El modo grid es experimental y requiere LuaLaTeX.
 
 \section{Carga del paquete}
-
-Coloque \texttt{sintaxismark.sty} en el mismo directorio que el documento o instálelo en el árbol local de TeX. Luego cárguelo en el preámbulo:
 
 \begin{lstlisting}
 \usepackage{sintaxismark}
 \end{lstlisting}
 
-También se puede seleccionar un esquema visual al cargar el paquete:
+Con \texttt{gb4e}, conviene cargar \texttt{gb4e} antes:
+
+\begin{lstlisting}
+\usepackage{gb4e}
+\noautomath
+\usepackage{sintaxismark}
+\end{lstlisting}
+
+También puede cargarse un esquema visual clásico:
 
 \begin{lstlisting}
 \usepackage[docencia]{sintaxismark}
@@ -87,11 +76,7 @@ También se puede seleccionar un esquema visual al cargar el paquete:
 \usepackage[publicacion]{sintaxismark}
 \end{lstlisting}
 
-El esquema activo también puede modificarse dentro del documento:
-
-\begin{lstlisting}
-\setsintaxisschema{diapositivas}
-\end{lstlisting}
+Los esquemas ajustan el modo clásico. En esta versión experimental, el modo grid usa valores internos de separación que fueron aproximados a los valores del modo clásico, especialmente a los usos de \verb|liney|, \verb|boxd|, \verb|boxsep|, \verb|tagy| y \verb|nestedgap|.
 
 \section{Ejemplo mínimo en modo clásico}
 
@@ -109,177 +94,39 @@ El esquema activo también puede modificarse dentro del documento:
 \end{document}
 \end{lstlisting}
 
-\section{Comandos básicos del modo clásico}
+Como el modo clásico usa \texttt{remember picture} de TikZ, normalmente conviene compilar dos veces.
 
-\subsection{Corchetes inferiores abiertos: \texttt{\textbackslash openbox}}
-
-\begin{lstlisting}
-\openbox{OD}{Juan compró manzanas}
-\end{lstlisting}
-
-El primer argumento es la etiqueta. El segundo argumento es el texto anotado. Se pueden pasar claves opcionales entre corchetes:
-
-\begin{lstlisting}
-\openbox[color=blue,linew=1pt,boxd=4ex]{OD}{manzanas}
-\end{lstlisting}
-
-\subsection{Líneas superiores de alcance: \texttt{\textbackslash spanline}}
-
-\begin{lstlisting}
-\spanline{SES}{Juan} \spanline{PVS}{compró manzanas}
-\end{lstlisting}
-
-Este comando dibuja una línea horizontal superior con extremos verticales y una etiqueta sobre el tramo.
-
-\subsection{Etiquetas flotantes: \texttt{\textbackslash tagabove} y \texttt{\textbackslash tagbelow}}
-
-\begin{lstlisting}
-\tagabove{ST}{Juan compró manzanas}
-\tagbelow{NN}{Juan}
-\end{lstlisting}
-
-\subsection{Subrayado: \texttt{\textbackslash synul}}
-
-\begin{lstlisting}
-\synul{compró}
-\end{lstlisting}
-
-Sirve para marcar núcleos u otros elementos destacados.
-
-\section{Atajos predefinidos}
-
-El paquete define atajos para etiquetas frecuentes de análisis sintáctico y de gramática escolar.
+\section{Atajos principales}
 
 \begin{longtable}{ll}
 \toprule
-Comando & Etiqueta por defecto \\
+Comando & Función visual \\
 \midrule
-\verb|\SES{...}| & \textsc{ses} \\
-\verb|\ST{...}| & \textsc{st} \\
-\verb|\SEC{...}| & \textsc{sec} \\
-\verb|\PVS{...}| & \textsc{pvs} \\
-\verb|\PVC{...}| & \textsc{pvc} \\
-\verb|\OS{...}| & \textsc{os} \\
-\verb|\OD{...}| & \textsc{od}, con subrayado \\
-\verb|\OI{...}| & \textsc{oi}, con subrayado \\
-\verb|\MD{...}| & \textsc{md} \\
-\verb|\MI{...}| & \textsc{mi} \\
-\verb|\N{...}| & \textsc{n} \\
-\verb|\NN{...}| & \textsc{nn}, con subrayado \\
-\verb|\NV{...}| & \textsc{nv}, con subrayado \\
-\verb|\NP{...}| & \textsc{np} \\
-\verb|\NA{...}| & \textsc{na} \\
-\verb|\NAD{...}| & \textsc{nadv} \\
+\verb|\SES{...}| & sujeto expreso simple, línea superior \\
+\verb|\ST{...}| & sujeto tácito, línea superior \\
+\verb|\SEC{...}| & sujeto expreso compuesto, línea superior \\
+\verb|\PVS{...}| & predicado verbal simple, línea superior \\
+\verb|\PVC{...}| & predicado verbal compuesto, línea superior \\
+\verb|\OS{...}| & oración, línea superior \\
+\verb|\OD{...}| & objeto directo, etiqueta inferior con subrayado \\
+\verb|\OD*{...}| & objeto directo, corchete inferior abierto \\
+\verb|\OI{...}| & objeto indirecto, etiqueta inferior con subrayado \\
+\verb|\OI*{...}| & objeto indirecto, corchete inferior abierto \\
+\verb|\MD{...}| & modificador directo, etiqueta inferior \\
+\verb|\MI{...}| & modificador indirecto, etiqueta inferior \\
+\verb|\MI*{...}| & modificador indirecto, corchete inferior abierto \\
+\verb|\N{...}| & núcleo, etiqueta inferior \\
+\verb|\NN{...}| & núcleo nominal, etiqueta inferior con subrayado \\
+\verb|\NV{...}| & núcleo verbal, etiqueta inferior con subrayado \\
 \bottomrule
 \end{longtable}
-
-Otros atajos duales son \verb|\CCL|, \verb|\COMP|, \verb|\CAg|, \verb|\CREG|, \verb|\CSim|, \verb|\CL|, \verb|\CM|, \verb|\PSO|, \verb|\PSNO|, \verb|\POO|, \verb|\PONO|, \verb|\ACT|, \verb|\ACL|, \verb|\ACM|, \verb|\ACF|, \verb|\ACC|, \verb|\ACCant|, \verb|\ACI|, \verb|\ACFin|, \verb|\MG|, \verb|\Ap|, \verb|\MF|, \verb|\IPCR| e \verb|\Incl|.
-
-\section{Formas con y sin estrella}
-
-Desde la versión 0.6.19, muchos atajos tienen un comportamiento dual:
-
-\begin{itemize}
-  \item la forma sin estrella usa una etiqueta inferior flotante, normalmente mediante \verb|\tagbelow|;
-  \item la forma con estrella usa un corchete inferior abierto, mediante \verb|\openbox|.
-\end{itemize}
-
-\begin{lstlisting}
-\OD{manzanas}     % etiqueta inferior + subrayado
-\OD*{manzanas}    % corchete inferior abierto
-
-\MI{de lino}      % etiqueta inferior
-\MI*{de lino}     % corchete inferior abierto
-\end{lstlisting}
-
-\section{Esquemas visuales}
-
-El paquete incluye cuatro esquemas:
-
-\begin{longtable}{ll}
-\toprule
-Esquema & Uso previsto \\
-\midrule
-\texttt{docencia} & materiales de clase y ejercicios \\
-\texttt{impresion} & apuntes impresos compactos \\
-\texttt{diapositivas} & diapositivas y material proyectado \\
-\texttt{publicacion} & salida más compacta orientada a publicación \\
-\bottomrule
-\end{longtable}
-
-\section{Claves gráficas del modo clásico}
-
-La mayoría de los comandos clásicos aceptan opciones en formato clave-valor:
-
-\begin{lstlisting}
-\openbox[color=blue,linew=1pt,boxd=4ex]{OD}{manzanas}
-\spanline[color=red,liney=3ex]{SES}{Juan}
-\tagbelow[tagx=0.5ex,tagy=2ex]{MD}{el}
-\end{lstlisting}
-
-\begin{longtable}{ll}
-\toprule
-Clave & Función \\
-\midrule
-\texttt{color} & color de la anotación \\
-\texttt{linew} & grosor de línea \\
-\texttt{liney} & posición vertical de las líneas superiores \\
-\texttt{linegap} & separación entre texto y extremos superiores \\
-\texttt{labsep} & separación entre línea superior y etiqueta \\
-\texttt{boxd} & profundidad del corchete inferior \\
-\texttt{boxsep} & separación entre corchete inferior y etiqueta \\
-\texttt{labelsep} & separación general de etiquetas \\
-\texttt{labelsepboxes} & separación de etiquetas para cajas \\
-\texttt{nestedgap} & separación extra para marcas anidadas \\
-\texttt{labheight} & altura estimada de etiqueta para cálculos de espaciado \\
-\texttt{tagy} & posición vertical de etiquetas flotantes \\
-\texttt{tagx} & desplazamiento horizontal de etiquetas flotantes \\
-\texttt{underw} & grosor del subrayado \\
-\texttt{labelalign} & alineación de etiqueta: \texttt{left}, \texttt{center} o \texttt{right} \\
-\texttt{leftend}, \texttt{rightend} & mostrar u ocultar extremos verticales \\
-\texttt{leftarrow}, \texttt{rightarrow} & agregar flechas \\
-\texttt{arrowlen} & longitud de punta de flecha \\
-\texttt{arrowtip} & tipo de punta TikZ \\
-\texttt{arrowscale} & escala de punta de flecha \\
-\texttt{arrowinset} & inserción de punta de flecha \\
-\bottomrule
-\end{longtable}
-
-\section{Ejemplos largos en modo clásico}
-
-Para ejemplos que deben partirse en más de una línea, use \verb|\SMlinewrap|:
-
-\begin{lstlisting}
-\begin{exe}
-\ex \SMlinewrap{El \MI{departamento de unos monoblocks deteriorados de tres pisos de color bordó} quedaba en la planta baja.}
-\end{exe}
-\end{lstlisting}
-
-Si un tramo no debe partirse entre líneas, use las variantes sin corte:
-
-\begin{lstlisting}
-\openboxNB{MI}{departamento de unos monoblocks deteriorados}
-\spanlineNB{SES}{El departamento de unos monoblocks deteriorados}
-\end{lstlisting}
-
-El comando \verb|\breakspan| sirve cuando un tramo debe dividirse manualmente en dos partes visuales. El primer argumento se muestra como tramo cortado hacia la derecha; el segundo, como tramo cortado hacia la izquierda.
-
-\begin{lstlisting}
-\breakspan
-  {\SES{\MI{El departamento de unos monoblocks}}}
-  {\SES{\MI{quedaba en la planta baja}}}
-\end{lstlisting}
 
 \section{Modo grid experimental}
-
-El modo grid está pensado para ejemplos largos o multilínea. A diferencia del modo clásico, no dibuja cada marca inmediatamente. Primero lee el contenido completo del entorno, extrae tokens, calcula los rangos de cada marca, decide los cortes de línea de acuerdo con el ancho disponible y luego dibuja el análisis completo.
-
-Esto permite evitar el problema de las diagonales cuando un \verb|\spanline| o un \verb|\openbox| atraviesa un salto de línea.
 
 \subsection{Ejemplo básico}
 
 \begin{lstlisting}
-\begin{sintaxisgrid}[width=10cm]
+\begin{sintaxisgrid}[width=10cm,valign=base]
 \SA{
   \SES{Juan}
   \PVS{
@@ -293,178 +140,79 @@ Esto permite evitar el problema de las diagonales cuando un \verb|\spanline| o u
 \end{sintaxisgrid}
 \end{lstlisting}
 
-La tabulación vertical no tiene valor estructural. Sirve solo para leer mejor el código. El mismo ejemplo puede escribirse en una línea:
+La indentación no tiene valor estructural. La estructura está dada por los comandos y las llaves. El mismo ejemplo puede escribirse en una línea:
 
 \begin{lstlisting}
 \begin{sintaxisgrid}[width=10cm]
 \SA{\SES{Juan}\PVS{vio \OD*{\MD{un}\N{tigre}}}}
 \end{sintaxisgrid}
 \end{lstlisting}
-
-Lo importante son las llaves, porque expresan qué constituyente contiene a cuál.
-
-\subsection{Interpretación de comandos dentro de \texttt{sintaxisgrid}}
-
-Dentro de \verb|sintaxisgrid|, los comandos no se ejecutan como en el modo clásico, sino que se interpretan estructuralmente:
-
-\begin{itemize}
-  \item \verb|\SES|, \verb|\ST|, \verb|\SEC|, \verb|\PVS|, \verb|\PVC| y \verb|\OS| producen líneas superiores.
-  \item Las formas con estrella, como \verb|\OD*|, \verb|\MI*| o \verb|\COMP*|, producen cajas inferiores abiertas.
-  \item \verb|\OD| y \verb|\OI| sin estrella producen marca inferior con subrayado.
-  \item \verb|\MD|, \verb|\N|, \verb|\NN|, \verb|\NV| y etiquetas semejantes producen etiquetas inferiores simples.
-\end{itemize}
 
 \subsection{Uso con \texttt{gb4e}}
 
 \begin{lstlisting}
 \begin{exe}
 \ex
-\begin{sintaxisgrid}[width=\linewidth]
+\begin{sintaxisgrid}[width=.92\linewidth,valign=base,yoffset=0pt]
 \SA{\SES{Juan}\PVS{vio \OD*{\MD{un}\N{tigre}}}}
 \end{sintaxisgrid}
 \end{exe}
 \end{lstlisting}
 
-El baseline del entorno está pensado para que el número de \texttt{gb4e} coincida con la primera línea del ejemplo. Si fuera necesario ajustar manualmente, puede usarse \verb|yoffset|:
+\verb|valign=base| alinea el entorno con la línea de base del ejemplo. Si el número de \texttt{gb4e} queda apenas alto o bajo, use \verb|yoffset|:
 
 \begin{lstlisting}
-\begin{sintaxisgrid}[width=\linewidth,yoffset=0.4ex]
+\begin{sintaxisgrid}[width=.92\linewidth,valign=base,yoffset=0.2ex]
 ...
 \end{sintaxisgrid}
 \end{lstlisting}
 
-\subsection{Opciones globales del modo grid}
+\subsection{Opciones del entorno}
 
-Las opciones globales se configuran con \verb|\sintaxismarksetup| y el prefijo \verb|grid/|:
-
-\begin{lstlisting}
-\sintaxismarksetup{
-  grid/lower-level-gap=0.75,
-  grid/lower-label-sep=0.18,
-  grid/token-pad-left=0.06,
-  grid/token-pad-right=0.06
-}
-\end{lstlisting}
-
-Las principales claves globales son:
+En la versión monolítica actual, las opciones estables del entorno son:
 
 \begin{longtable}{ll}
 \toprule
-Clave & Función \\
+Opción & Función \\
 \midrule
-\texttt{grid/width} & ancho por defecto del entorno \\
-\texttt{grid/valign} & alineación vertical: \texttt{base}, \texttt{t}, \texttt{c}, \texttt{b} \\
-\texttt{grid/yoffset} & corrección vertical manual \\
-\texttt{grid/upper-y-base} & distancia entre texto y comienzo de patas superiores \\
-\texttt{grid/upper-leg} & longitud de las patas superiores \\
-\texttt{grid/upper-level-gap} & separación entre niveles superiores superpuestos \\
-\texttt{grid/upper-label-sep} & separación entre línea superior y etiqueta \\
-\texttt{grid/lower-y-base} & distancia desde el texto hasta la primera zona inferior \\
-\texttt{grid/lower-level-gap} & separación entre niveles inferiores \\
-\texttt{grid/lower-leg-top} & altura inicial de las patas inferiores \\
-\texttt{grid/lower-label-sep} & separación entre caja inferior y etiqueta \\
-\texttt{grid/tag-y-base} & distancia base de etiquetas inferiores simples \\
-\texttt{grid/tag-level-gap} & separación entre niveles de etiquetas simples \\
-\texttt{grid/token-gap} & separación horizontal entre tokens \\
-\texttt{grid/token-pad-left} & aire adicional antes del primer token de una marca \\
-\texttt{grid/token-pad-right} & aire adicional después del último token de una marca \\
-\texttt{grid/linegap} & separación vertical general entre líneas \\
-\texttt{grid/line-base} & altura base reservada por línea \\
-\texttt{grid/line-lower-extra} & espacio extra por niveles inferiores \\
+\verb|width=<dimensión>| & ancho disponible para calcular los cortes de línea \\
+\verb|valign=base| & alinea con la línea de base, recomendado con \texttt{gb4e} \\
+\verb|valign=t| & alineación superior \\
+\verb|valign=c| & alineación centrada \\
+\verb|valign=b| & alineación inferior \\
+\verb|yoffset=<dimensión>| & ajuste vertical manual fino \\
 \bottomrule
 \end{longtable}
 
-\subsection{Opciones locales del entorno}
+\subsection{Separación visual}
 
-En una instancia particular de \verb|sintaxisgrid| se pueden sobrescribir claves de grilla sin escribir el prefijo \verb|grid/|:
-
-\begin{lstlisting}
-\begin{sintaxisgrid}[width=10cm,lower-level-gap=0.50,token-pad-left=0.03]
-...
-\end{sintaxisgrid}
-\end{lstlisting}
-
-\subsection{Opciones locales por marca}
-
-También se pueden pasar opciones a una marca particular:
-
-\begin{lstlisting}
-\begin{sintaxisgrid}[width=10cm]
-\SA{
-  \SES[color=blue]{Juan}
-  \PVS[color=black,arrow=right]{
-    vio
-    \OD*[color=red,no-leftend]{
-      \MD[color=gray]{un}
-      \N{tigre}
-    }
-  }
-}
-\end{sintaxisgrid}
-\end{lstlisting}
-
-Estas opciones afectan solo a la marca donde aparecen. Opciones disponibles:
-
-\begin{longtable}{ll}
-\toprule
-Opción local & Función \\
-\midrule
-\texttt{color=<color>} & color de línea y etiqueta \\
-\texttt{linecolor=<color>} / \texttt{line-color=<color>} & color de línea \\
-\texttt{labelcolor=<color>} / \texttt{label-color=<color>} & color de etiqueta \\
-\texttt{textcolor=<color>} / \texttt{text-color=<color>} & alias para color de etiqueta \\
-\texttt{leftend=false} & elimina la pata izquierda \\
-\texttt{rightend=false} & elimina la pata derecha \\
-\texttt{no-leftend} & alias de \texttt{leftend=false} \\
-\texttt{no-rightend} & alias de \texttt{rightend=false} \\
-\texttt{no-ends} & elimina ambas patas \\
-\texttt{arrow=left} & flecha hacia la izquierda \\
-\texttt{arrow=right} & flecha hacia la derecha \\
-\texttt{arrow=both} & flechas en ambos extremos \\
-\texttt{arrow=none} & sin flechas \\
-\texttt{leftarrow} & alias de \texttt{arrow=left} \\
-\texttt{rightarrow} & alias de \texttt{arrow=right} \\
-\texttt{leftrightarrow} & alias de \texttt{arrow=both} \\
-\texttt{no-arrow} & alias de \texttt{arrow=none} \\
-\bottomrule
-\end{longtable}
-
-\subsection{Ejemplo con opciones locales}
-
-\begin{lstlisting}
-\begin{sintaxisgrid}[width=10cm]
-\SA{
-  \SES[no-ends,color=blue!60!black]{Juan}
-  \PVS[arrow=both,color=orange!80!black]{
-    vio
-    \OD*[color=purple,rightend=false]{
-      \MD{un}
-      \N{tigre}
-      \MI*[color=red!70!black,arrow=left]{
-        de \COMP*[color=teal,no-ends]{sus garras}
-      }
-    }
-  }
-}
-\end{sintaxisgrid}
-\end{lstlisting}
-
-\section{Notas prácticas}
+El renderizador grid usa valores internos ajustados para parecerse al modo clásico. En particular:
 
 \begin{itemize}
-  \item Compile con LuaLaTeX si usa \verb|sintaxisgrid|.
-  \item Compile dos veces si las etiquetas o líneas del modo clásico aparecen mal ubicadas en la primera pasada.
-  \item Al usar \texttt{gb4e}, cargue \texttt{gb4e} antes que \texttt{sintaxismark}.
-  \item Para ejemplos largos, el modo grid es preferible. En el modo clásico, use \verb|\SMlinewrap|, \verb|\openboxNB|, \verb|\spanlineNB| o \verb|\breakspan|.
-  \item En el modo grid, la tabulación del código no cuenta como estructura: solo cuentan los comandos y las llaves.
+  \item las líneas superiores se ubican con una separación comparable a \verb|liney| y \verb|labsep|;
+  \item las cajas inferiores se ubican con una profundidad comparable a \verb|boxd| y \verb|boxsep|;
+  \item las etiquetas inferiores simples usan una separación comparable a \verb|tagy|;
+  \item los niveles anidados intentan reproducir el efecto de \verb|nestedgap| y de la reserva vertical automática del modo clásico.
 \end{itemize}
+
+Como el grid calcula una caja completa, no depende de \texttt{remember picture} ni requiere dos pasadas para ubicar las marcas. Las advertencias del tipo \texttt{Missing character: There is no U+000A in font nullfont} pueden aparecer en esta versión experimental y no impiden generar el PDF.
+
+\section{Demo incluida}
+
+El archivo \texttt{demo-monolithic.tex} prueba la versión monolítica con \texttt{gb4e}, modo clásico y modo grid. Para compilar:
+
+\begin{lstlisting}
+lualatex demo-monolithic.tex
+\end{lstlisting}
+
+Para verificar que el archivo único es autosuficiente, puede copiar solo \texttt{sintaxismark.sty} y \texttt{demo-monolithic.tex} a una carpeta temporal y compilar allí.
 
 \section{Notas de versión}
 
-La versión 0.6.21 mejora el espaciado de \verb|\tagbelow| anidados mediante encadenamiento de profundidad, de modo análogo a \verb|\openbox|.
-
-La versión 0.6.23 agrega comandos experimentales de corte automático para texto plano: \verb|\autospanline| y \verb|\autoopenbox|.
-
-La versión 0.7.0 experimental introduce el modo \verb|sintaxisgrid|, con cálculo de grilla en LuaLaTeX, opciones globales mediante \verb|\sintaxismarksetup{grid/...}| y opciones locales por marca para color, flechas y terminaciones.
+\begin{itemize}
+  \item \textbf{0.7.2 experimental}: versión monolítica. \texttt{sintaxismark.sty} contiene el modo clásico y el modo grid con Lua embebido.
+  \item \textbf{0.7.1 experimental}: corrige la captura del cuerpo de \verb|sintaxisgrid|.
+  \item \textbf{0.7.0 experimental}: introduce el modo \verb|sintaxisgrid|.
+\end{itemize}
 
 \end{document}
