@@ -2,9 +2,23 @@
 
 \usepackage{gb4e}
 \noautomath
-\usepackage{sintaxismark}
+\usepackage[docencia]{sintaxismark}
 
 \begin{document}
+
+\section*{sintaxismark monolithic demo}
+
+This file tests the monolithic \texttt{sintaxismark.sty}.  Compile with
+LuaLaTeX.  The grid examples use spacing tuned to resemble the classic
+\texttt{docencia} preset.
+
+\subsection*{1. Classic mode}
+
+\begin{exe}
+\ex \SES{Juan} \PVS{\NV{compró} \OD{manzanas}}.
+\end{exe}
+
+\subsection*{2. Grid mode with gb4e}
 
 \begin{exe}
 \ex
@@ -17,6 +31,65 @@
       \MD{un}
       \N{tigre}
     }
+  }
+}
+\end{sintaxisgrid}
+\end{exe}
+
+\subsection*{3. Grid mode with nested lower marks}
+
+\begin{exe}
+\ex
+\begin{sintaxisgrid}[width=.92\linewidth,valign=base,yoffset=0pt]
+\SA{
+  \SES{
+    \MD{El}
+    \N{estudiante}
+    \MI*{
+      de
+      \MD{la}
+      \N{facultad}
+    }
+  }
+  \PVS{
+    analizó
+    \OD*{
+      \MD{una}
+      \N{oración}
+      \MI*{
+        con
+        \MD{varios}
+        \N{modificadores}
+      }
+    }
+  }
+}
+\end{sintaxisgrid}
+\end{exe}
+
+\subsection*{4. Grid mode, forced line break by width}
+
+\begin{exe}
+\ex
+\begin{sintaxisgrid}[width=8cm,valign=base,yoffset=0pt]
+\SA{
+  \SES{
+    \MD{El}
+    \N{departamento}
+    \MI*{
+      de
+      \MD{unos}
+      \N{monoblocks}
+      \MI*{
+        de
+        \MD{color}
+        \N{bordó}
+      }
+    }
+  }
+  \PVS{
+    quedaba
+    \ACM{abajo}
   }
 }
 \end{sintaxisgrid}
