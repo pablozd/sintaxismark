@@ -7,7 +7,7 @@
 \usepackage{fontspec}
 \usepackage[english]{babel}
 \usepackage{geometry}
-\geometry{margin=2.5cm}
+\geometry{margin=2.4cm}
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{xcolor}
@@ -15,8 +15,13 @@
 \usepackage{hyperref}
 \usepackage{parskip}
 \usepackage{microtype}
+\usepackage{array}
 \usepackage{gb4e}\noautomath
 
+% Allow compilation both from the repository root and from doc/.
+\makeatletter
+\def\input@path{{./}{../}}
+\makeatother
 \usepackage[docencia]{sintaxismark}
 
 \lstset{
@@ -30,7 +35,12 @@
   commentstyle=\color{gray!70!black}
 }
 
-\title{\texttt{sintaxismark}: documentation}
+\newcommand{\pkg}{\texttt{sintaxismark}}
+\newcommand{\cmd}[1]{\texttt{\textbackslash #1}}
+\newcommand{\key}[1]{\texttt{#1}}
+\newcommand{\exampletitle}[1]{\par\medskip\noindent\textbf{Example. #1}\par\smallskip}
+
+\title{\pkg: complete user documentation}
 \author{Pablo Damián Zdrojewski}
 \date{Experimental monolithic version 0.7.2 --- 2026-06-29}
 
@@ -38,36 +48,108 @@
 \maketitle
 \tableofcontents
 
-\section{Overview}
+\section{Purpose and scope}
 
-\texttt{sintaxismark} is a LaTeX package for marking syntactic constituents, grammatical functions, and heads directly over running text. It is intended for grammar teaching materials, exercises, slides, and compact linguistic analyses.
+\pkg{} is a LaTeX package for marking syntactic constituents, grammatical functions, heads, and annotated spans directly over running text. It is designed for teaching materials, exercises, handouts, slides, and compact linguistic analyses where a full syntactic tree would be too heavy.
 
-Experimental version 0.7.2 uses one main file, \texttt{sintaxismark.sty}. This file contains both the classic mode and the experimental \texttt{grid} mode. To use the monolithic version, copy \texttt{sintaxismark.sty} to the same directory as your document.
+The experimental monolithic version consists of a single file, \texttt{sintaxismark.sty}. This file contains the classic TikZ-overlay implementation, manual multiline helpers, experimental automatic splitting commands, and the experimental LuaLaTeX grid renderer.
 
-\section{Two modes}
+\section{Compilation and installation}
 
-\begin{enumerate}
-  \item \textbf{Classic mode}: uses TikZ overlays with commands such as \verb|\spanline|, \verb|\openbox|, \verb|\tagbelow|, \verb|\SES|, \verb|\PVS|, \verb|\OD|, \verb|\MI|, etc. It is suitable for short examples or for carefully controlled manual markup.
-  \item \textbf{Grid mode}: uses the \verb|sintaxisgrid| environment. It reads a nested syntactic structure, extracts tokens, computes line breaks, and draws the whole analysis on a grid. It is intended for long or multiline examples because it avoids diagonal lines when a mark crosses a line break.
-\end{enumerate}
-
-Classic mode is preserved for compatibility. Grid mode is experimental and requires LuaLaTeX.
-
-\section{Loading the package}
+Copy \texttt{sintaxismark.sty} to the same directory as your document, or install it in a local TeX tree.
 
 \begin{lstlisting}
+\documentclass{article}
 \usepackage{sintaxismark}
+\begin{document}
+Text.
+\end{document}
 \end{lstlisting}
 
-With \texttt{gb4e}, load \texttt{gb4e} first:
+If you use \texttt{gb4e}, load \texttt{gb4e} first and disable automatic math mode:
 
 \begin{lstlisting}
+\documentclass{article}
 \usepackage{gb4e}
 \noautomath
 \usepackage{sintaxismark}
+\begin{document}
+\begin{exe}
+\ex \SES{Juan} \PVS{\NV{compró} \OD{manzanas}}.
+\end{exe}
+\end{document}
 \end{lstlisting}
 
-A classic visual preset can also be selected:
+Classic mode uses TikZ with \texttt{remember picture} and \texttt{overlay}. Compile twice if the first run places labels incorrectly. Grid mode and the automatic splitting commands require LuaLaTeX.
+
+\section{Modes of operation}
+
+\begin{enumerate}
+  \item \textbf{Classic mode}: commands such as \cmd{spanline}, \cmd{openbox}, \cmd{tagbelow}, \cmd{synul}, and the shortcut commands draw annotations directly around the text. This is the most flexible mode for short examples and fine manual control.
+  \item \textbf{Manual multiline mode}: helpers such as \cmd{spanfirst}, \cmd{spanmid}, \cmd{spanlast}, \cmd{boxfirst}, \cmd{boxmid}, and \cmd{boxlast} split a long annotation into visually separate segments.
+  \item \textbf{Automatic split mode}: \cmd{autospanline} and \cmd{autoopenbox} split plain text automatically. This is experimental and only parses plain text.
+  \item \textbf{Grid mode}: the \texttt{sintaxisgrid} environment parses nested sintaxismark markup, computes line breaks, and renders the whole example as one grid. It is intended to avoid diagonal lines in long multiline analyses.
+\end{enumerate}
+
+\section{Visual settings inherited from the classic implementation}
+
+The original spacing of \cmd{spanline} and \cmd{openbox} is controlled by the \texttt{/sintaxis} key family. The following defaults are the reference values used by the classic implementation.
+
+\begin{longtable}{>{\ttfamily}p{3.5cm}p{2.2cm}p{8.0cm}}
+\toprule
+Key & Default & Meaning \\
+\midrule
+color & black & Annotation color. \\
+linew & 0.6pt & Stroke width for spans, boxes, and underlines. \\
+liney & 1ex & Vertical length of the legs of upper spans. \\
+linegap & 5.5pt & Gap between the text and the lower end of an upper span leg. The upper span line is placed at \texttt{linegap + liney}. \\
+labsep & 1ex & Gap between an upper span line and its label. \\
+boxd & 3ex & Depth of lower open boxes. \\
+boxsep & 1.0ex & Gap between a lower open box and its label. \\
+labelsep & unset & General label separation override. If set, it overrides \texttt{boxsep} and \texttt{labelsepboxes}. \\
+labelsepboxes & unset & Label separation override for lower boxes. \\
+nestedgap & 0.3ex & Extra gap used when nested lower annotations require additional depth. \\
+labheight & 1.1ex & Estimated label height used in vertical reservation. \\
+tagy & 1.8ex & Vertical distance for floating lower tags. \\
+tagx & 0pt & Horizontal displacement for floating lower tags. \\
+underw & 0.8pt & Underline stroke width. \\
+autogap & 0.6ex & Extra gap used by automatic depth calculation for nested lower boxes. \\
+leftend & true & Draw the left vertical end of a span or open box. \\
+rightend & true & Draw the right vertical end of a span or open box. \\
+autodepth & true & Let nested lower annotations increase the depth of an outer open box. \\
+leftarrow & false & Add a left arrow tip to the horizontal line. \\
+rightarrow & false & Add a right arrow tip to the horizontal line. \\
+arrowlen & 1.3ex & Arrowhead length. \\
+arrowtip & Latex & TikZ arrowhead type. \\
+arrowscale & 1 & Arrowhead scale. \\
+arrowinset & 0pt & Arrowhead inset. \\
+labelalign & center & Label alignment for lower boxes: \texttt{left}, \texttt{center}, or \texttt{right}. \\
+\bottomrule
+\end{longtable}
+
+The compact reservation layer currently reserves a fixed amount of vertical space: \texttt{4.5ex} below the line and \texttt{7.5ex} above the line. This is a pragmatic setting that prevents frequent collisions in examples embedded in \texttt{gb4e}.
+
+\exampletitle{Changing classic spacing globally inside a document}
+\begin{lstlisting}
+\setsintaxisschema{docencia}
+\end{lstlisting}
+
+\exampletitle{Changing classic spacing locally for one annotation}
+\begin{lstlisting}
+\spanline[liney=3ex,linegap=0.8ex,labsep=1.2ex,linew=1pt]{pvs}{compró manzanas}
+\openbox[boxd=3.6ex,boxsep=1.4ex,linew=1pt]{od}{manzanas}
+\tagbelow[tagy=2.2ex,tagx=0.5ex]{md}{las}
+\end{lstlisting}
+
+\begin{exe}
+\ex \spanline[liney=3ex,linegap=0.8ex,labsep=1.2ex,linew=1pt]{pvs}{compró manzanas}
+\ex \openbox[boxd=3.6ex,boxsep=1.4ex,linew=1pt]{od}{manzanas}
+\ex \tagbelow[tagy=2.2ex,tagx=0.5ex]{md}{las}
+\end{exe}
+
+\section{Visual presets}
+
+The package option selects a visual preset for classic mode:
 
 \begin{lstlisting}
 \usepackage[docencia]{sintaxismark}
@@ -76,143 +158,395 @@ A classic visual preset can also be selected:
 \usepackage[publicacion]{sintaxismark}
 \end{lstlisting}
 
-The presets adjust classic mode. In this experimental version, grid mode uses internal spacing values that were tuned to approximate the classic settings, especially \verb|liney|, \verb|boxd|, \verb|boxsep|, \verb|tagy|, and \verb|nestedgap|.
-
-\section{Minimal classic example}
+Presets may also be selected inside the document:
 
 \begin{lstlisting}
-\documentclass{article}
-\usepackage{gb4e}\noautomath
-\usepackage[docencia]{sintaxismark}
-
-\begin{document}
-
-\begin{exe}
-\ex \SES{Juan} \PVS{\NV{compró} \OD{manzanas}}.
-\end{exe}
-
-\end{document}
+\setsintaxisschema{diapositivas}
 \end{lstlisting}
 
-Because classic mode uses TikZ \texttt{remember picture}, it is usually best to compile twice.
-
-\section{Main shortcuts}
-
-\begin{longtable}{ll}
+\begin{longtable}{>{\ttfamily}p{2.9cm}p{10.6cm}}
 \toprule
-Command & Visual function \\
+Preset & Settings \\
 \midrule
-\verb|\SES{...}| & simple explicit subject, upper span \\
-\verb|\ST{...}| & null subject, upper span \\
-\verb|\SEC{...}| & compound explicit subject, upper span \\
-\verb|\PVS{...}| & simple verbal predicate, upper span \\
-\verb|\PVC{...}| & compound verbal predicate, upper span \\
-\verb|\OS{...}| & sentence, upper span \\
-\verb|\OD{...}| & direct object, lower label with underline \\
-\verb|\OD*{...}| & direct object, lower open box \\
-\verb|\OI{...}| & indirect object, lower label with underline \\
-\verb|\OI*{...}| & indirect object, lower open box \\
-\verb|\MD{...}| & direct modifier, lower label \\
-\verb|\MI{...}| & indirect modifier, lower label \\
-\verb|\MI*{...}| & indirect modifier, lower open box \\
-\verb|\N{...}| & head, lower label \\
-\verb|\NN{...}| & nominal head, lower label with underline \\
-\verb|\NV{...}| & verbal head, lower label with underline \\
+docencia & \texttt{linew=0.9pt, liney=2.4ex, linegap=0.6ex, labsep=1.0ex, boxd=3.2ex, boxsep=1.0ex, tagy=1.8ex, underw=1.0pt}. \\
+impresion & \texttt{linew=0.5pt, liney=1.8ex, linegap=0pt, labsep=0.6ex, boxd=2.6ex, boxsep=0.8ex, tagy=1.6ex, underw=0.7pt}. \\
+diapositivas & \texttt{linew=1.2pt, liney=3.0ex, linegap=0.8ex, labsep=1.2ex, boxd=3.6ex, boxsep=1.4ex, tagy=2.0ex, underw=1.2pt, arrowlen=1.8ex, arrowscale=1.25, labelsepboxes=1.6ex, nestedgap=0.8ex, labheight=1.2ex}. \\
+publicacion & \texttt{linew=0.48pt, liney=2.0ex, linegap=0.3ex, labsep=0.7ex, boxd=2.8ex, boxsep=0.85ex, tagy=1.65ex, underw=0.65pt, arrowlen=1.2ex, arrowscale=1.0, labelsepboxes=0.9ex, nestedgap=0.45ex, labheight=1.0ex}. \\
 \bottomrule
 \end{longtable}
 
-\section{Experimental grid mode}
+\section{Core classic commands}
 
-\subsection{Basic example}
+\subsection{Upper spans: \cmd{spanline}}
 
 \begin{lstlisting}
-\begin{sintaxisgrid}[width=10cm,valign=base]
+\spanline[<keys>]{<label>}{<text>}
+\end{lstlisting}
+
+\cmd{spanline} draws an upper horizontal line with optional vertical ends and a label above it.
+
+\exampletitle{Upper spans}
+\begin{lstlisting}
+\spanline{ses}{Juan} \spanline{pvs}{compró manzanas}
+\spanline[color=blue,linew=1pt,liney=3ex,labsep=1.2ex]{pvs}{compró manzanas}
+\spanline[leftend=false,rightarrow,color=red]{pvs}{compró manzanas}
+\end{lstlisting}
+
+\begin{exe}
+\ex \spanline{ses}{Juan} \spanline{pvs}{compró manzanas}
+\ex \spanline[color=blue,linew=1pt,liney=3ex,labsep=1.2ex]{pvs}{compró manzanas}
+\ex \spanline[leftend=false,rightarrow,color=red]{pvs}{compró manzanas}
+\end{exe}
+
+\subsection{Lower open boxes: \cmd{openbox}}
+
+\begin{lstlisting}
+\openbox[<keys>]{<label>}{<text>}
+\end{lstlisting}
+
+\cmd{openbox} draws a lower open bracket-like box with a label below it.
+
+\exampletitle{Lower open boxes}
+\begin{lstlisting}
+\openbox{od}{manzanas}
+\openbox[boxd=3.8ex,boxsep=1.4ex,linew=1pt]{od}{manzanas rojas}
+\openbox[labelalign=left,color=purple]{mi}{de Juan}
+\openbox[rightend=false,rightarrow,color=orange!80!black]{od}{manzanas}
+\end{lstlisting}
+
+\begin{exe}
+\ex \openbox{od}{manzanas}
+\ex \openbox[boxd=3.8ex,boxsep=1.4ex,linew=1pt]{od}{manzanas rojas}
+\ex \openbox[labelalign=left,color=purple]{mi}{de Juan}
+\ex \openbox[rightend=false,rightarrow,color=orange!80!black]{od}{manzanas}
+\end{exe}
+
+\subsection{Floating labels: \cmd{tagabove} and \cmd{tagbelow}}
+
+\begin{lstlisting}
+\tagabove[<keys>]{<label>}{<text>}
+\tagbelow[<keys>]{<label>}{<text>}
+\end{lstlisting}
+
+\exampletitle{Floating labels}
+\begin{lstlisting}
+\tagabove{or}{Juan compró manzanas}
+\tagbelow{md}{las}
+\tagbelow[tagx=0.5ex,tagy=2.2ex,color=blue]{md}{las}
+\end{lstlisting}
+
+\begin{exe}
+\ex \tagabove{or}{Juan compró manzanas}
+\ex \tagbelow{md}{las}
+\ex \tagbelow[tagx=0.5ex,tagy=2.2ex,color=blue]{md}{las}
+\end{exe}
+
+\subsection{Underline: \cmd{synul}}
+
+\begin{lstlisting}
+\synul[<keys>]{<text>}
+\end{lstlisting}
+
+\exampletitle{Underline}
+\begin{lstlisting}
+\synul{compró}
+\synul[color=red,underw=1.2pt]{compró}
+\end{lstlisting}
+
+\begin{exe}
+\ex \synul{compró}
+\ex \synul[color=red,underw=1.2pt]{compró}
+\end{exe}
+
+\section{Shortcut commands}
+
+Upper-span shortcuts are wrappers around \cmd{spanline}: \cmd{SES}, \cmd{ST}, \cmd{SEC}, \cmd{PVS}, \cmd{PVC}, and \cmd{OS}.
+
+\exampletitle{Upper shortcut commands}
+\begin{lstlisting}
+\SES{Juan} \PVS{compró manzanas}
+\OS{\SES{Juan} \PVS{compró manzanas}}
+\end{lstlisting}
+
+\begin{exe}
+\ex \SES{Juan} \PVS{compró manzanas}
+\ex \OS{\SES{Juan} \PVS{compró manzanas}}
+\end{exe}
+
+Many lower shortcuts are dual commands. Without a star they produce a lower tag; with a star they produce a lower open box.
+
+\begin{lstlisting}
+\OD{manzanas}      % lower tag + underline
+\OD*{manzanas}     % lower open box
+\MI{de Juan}       % lower tag
+\MI*{de Juan}      % lower open box
+\end{lstlisting}
+
+\begin{exe}
+\ex \OD{manzanas}
+\ex \OD*{manzanas}
+\ex \MI{de Juan}
+\ex \MI*{de Juan}
+\end{exe}
+
+\begin{longtable}{>{\ttfamily}p{2.4cm}p{10.9cm}}
+\toprule
+Command & Output \\
+\midrule
+SES, ST, SEC, PVS, PVC, OS & Upper spans. \\
+OD, OI & Without star: lower label with underline. With star: lower open box. \\
+CCL, COMP, MD, MI, CAg, CREG, CSim, CL, CM & Without star: lower tag. With star: lower open box. \\
+PSO, PSNO, POO, PONO & Without star: lower tag. With star: lower open box. \\
+ACT, ACL, ACM, ACF, ACC, ACCant, ACI, ACFin & Without star: lower tag. With star: lower open box. \\
+MG, Ap, MF, IPCR, Incl & Without star: lower tag. With star: lower open box. \\
+N, NN, NV, NP, NA, NAD & Simple lower labels; NN and NV include underline. \\
+MGV, ApV, MFV, IPCRV, InclV & Lower labels with underline. \\
+\bottomrule
+\end{longtable}
+
+\exampletitle{Complex shortcut example}
+\begin{lstlisting}
+\SES{\MD{El} \NN{estudiante} \MI*{de \MD{la} \N{facultad}}}
+\PVS{\NV{analizó} \OD*{\MD{una} \NN{oración} \MI*{con \MD{varios} \N{modificadores}}}}
+\end{lstlisting}
+
+\begin{exe}
+\ex \SES{\MD{El} \NN{estudiante} \MI*{de \MD{la} \N{facultad}}}
+    \PVS{\NV{analizó} \OD*{\MD{una} \NN{oración} \MI*{con \MD{varios} \N{modificadores}}}}
+\end{exe}
+
+\section{Manual multiline helpers}
+
+If a long span or open box must be split across visual lines, use the manual helpers. They draw separate local segments and avoid diagonal lines.
+
+\begin{lstlisting}
+\spanfirst[<keys>]{<label>}{<text>}  % left end, open to the right
+\spanmid  [<keys>]{<label>}{<text>}  % continuation, no ends
+\spanlast [<keys>]{<label>}{<text>}  % open from the left, right end
+
+\boxfirst[<keys>]{<label>}{<text>}
+\boxmid  [<keys>]{<label>}{<text>}
+\boxlast [<keys>]{<label>}{<text>}
+\end{lstlisting}
+
+\exampletitle{Manual upper split}
+\begin{lstlisting}
+\spanfirst{pvs}{propuso una consigna extensa}
+\spanmid{pvs}{para analizar varios casos}
+\spanlast{pvs}{en la clase práctica}
+\end{lstlisting}
+
+\begin{exe}
+\ex \spanfirst{pvs}{propuso una consigna extensa}\par
+    \spanmid{pvs}{para analizar varios casos}\par
+    \spanlast{pvs}{en la clase práctica}
+\end{exe}
+
+\exampletitle{Manual lower split}
+\begin{lstlisting}
+\boxfirst{od}{una consigna extensa}
+\boxmid{od}{con varios incisos}
+\boxlast{od}{para resolver en clase}
+\end{lstlisting}
+
+\begin{exe}
+\ex \boxfirst{od}{una consigna extensa}\par
+    \boxmid{od}{con varios incisos}\par
+    \boxlast{od}{para resolver en clase}
+\end{exe}
+
+The upper shortcut wrappers are also available: \cmd{SESfirst}, \cmd{SESmid}, \cmd{SESlast}, \cmd{STfirst}, \cmd{STmid}, \cmd{STlast}, \cmd{SECfirst}, \cmd{SECmid}, \cmd{SEClast}, \cmd{PVSfirst}, \cmd{PVSmid}, \cmd{PVSlast}, \cmd{PVCfirst}, \cmd{PVCmid}, \cmd{PVClast}, \cmd{OSfirst}, \cmd{OSmid}, and \cmd{OSlast}.
+
+\section{Line wrapping and no-break variants}
+
+\cmd{SMlinewrap} places its contents in a variable-width paragraph of maximum width \cmd{linewidth}. It allows long examples to wrap naturally.
+
+\begin{lstlisting}
+\SMlinewrap{El \MI{departamento de unos monoblocks deteriorados} quedaba abajo.}
+\end{lstlisting}
+
+\cmd{openboxNB} and \cmd{spanlineNB} wrap the annotated text in \cmd{mbox}, preventing the marked text from breaking across lines.
+
+\begin{lstlisting}
+\openboxNB{mi}{departamento de unos monoblocks deteriorados}
+\spanlineNB{ses}{El departamento de unos monoblocks deteriorados}
+\end{lstlisting}
+
+\begin{exe}
+\ex \SMlinewrap{El \openboxNB{mi}{departamento de unos monoblocks deteriorados} quedaba abajo.}
+\end{exe}
+
+\section{The \cmd{breakspan} helper}
+
+\cmd{breakspan} applies a right-opening style to all spans and boxes in its first argument and a left-opening style to all spans and boxes in its second argument.
+
+\begin{lstlisting}
+\breakspan
+  {\SES{\MI{El departamento de unos monoblocks}}}
+  {\SES{\MI{quedaba en la planta baja}}}
+\end{lstlisting}
+
+\begin{exe}
+\ex \breakspan
+  {\SES{\MI{El departamento de unos monoblocks}}}
+  {\SES{\MI{quedaba en la planta baja}}}
+\end{exe}
+
+\section{Experimental automatic splitting}
+
+\cmd{autospanline} and \cmd{autoopenbox} require LuaLaTeX. They take plain text, compute a balanced line split, and internally emit the manual multiline helpers.
+
+\begin{lstlisting}
+\autospanline[<width>]{<label>}{<plain text>}
+\autoopenbox[<width>]{<label>}{<plain text>}
+\end{lstlisting}
+
+\exampletitle{Automatic split of an upper span}
+\begin{lstlisting}
+\autospanline[7cm]{pvs}{propuso una consigna extensa para analizar varios casos en la clase práctica}
+\end{lstlisting}
+
+\autospanline[7cm]{pvs}{propuso una consigna extensa para analizar varios casos en la clase práctica}
+
+\exampletitle{Automatic split of a lower box}
+\begin{lstlisting}
+\autoopenbox[7cm]{od}{una consigna extensa con varios incisos para resolver en la clase práctica}
+\end{lstlisting}
+
+\autoopenbox[7cm]{od}{una consigna extensa con varios incisos para resolver en la clase práctica}
+
+These commands are experimental and do not parse nested sintaxismark markup.
+
+\section{Experimental grid mode}
+
+The \texttt{sintaxisgrid} environment reads a full nested structure, extracts tokens, computes line breaks, and draws the whole analysis as a single TikZ picture. It is the preferred mode for long examples in which classic spans or boxes would cross line breaks.
+
+\begin{lstlisting}
+\begin{sintaxisgrid}[width=.92\linewidth,valign=base,yoffset=0pt]
 \SA{
   \SES{Juan}
   \PVS{
-    saw
+    vio
     \OD*{
-      \MD{a}
-      \N{tiger}
+      \MD{un}
+      \N{tigre}
     }
   }
 }
 \end{sintaxisgrid}
 \end{lstlisting}
 
-Indentation has no structural value. Structure is expressed by commands and braces. The same example can be written on one line:
-
-\begin{lstlisting}
-\begin{sintaxisgrid}[width=10cm]
-\SA{\SES{Juan}\PVS{saw \OD*{\MD{a}\N{tiger}}}}
-\end{sintaxisgrid}
-\end{lstlisting}
-
-\subsection{Use with \texttt{gb4e}}
-
-\begin{lstlisting}
 \begin{exe}
 \ex
 \begin{sintaxisgrid}[width=.92\linewidth,valign=base,yoffset=0pt]
-\SA{\SES{Juan}\PVS{saw \OD*{\MD{a}\N{tiger}}}}
+\SA{
+  \SES{Juan}
+  \PVS{
+    vio
+    \OD*{
+      \MD{un}
+      \N{tigre}
+    }
+  }
+}
 \end{sintaxisgrid}
 \end{exe}
-\end{lstlisting}
 
-\verb|valign=base| aligns the environment with the example baseline. If the \texttt{gb4e} number is slightly too high or too low, use \verb|yoffset|:
+\subsection{Grid environment options}
 
-\begin{lstlisting}
-\begin{sintaxisgrid}[width=.92\linewidth,valign=base,yoffset=0.2ex]
-...
-\end{sintaxisgrid}
-\end{lstlisting}
-
-\subsection{Environment options}
-
-In the current monolithic version, the stable environment options are:
-
-\begin{longtable}{ll}
+\begin{longtable}{>{\ttfamily}p{3.2cm}p{9.7cm}}
 \toprule
-Option & Function \\
+Option & Meaning \\
 \midrule
-\verb|width=<dimension>| & available width for computing line breaks \\
-\verb|valign=base| & baseline alignment, recommended with \texttt{gb4e} \\
-\verb|valign=t| & top alignment \\
-\verb|valign=c| & centered alignment \\
-\verb|valign=b| & bottom alignment \\
-\verb|yoffset=<dimension>| & fine manual vertical adjustment \\
+width=<dimension> & Available width for line breaking. Default: \cmd{linewidth}. \\
+valign=base & Baseline alignment; recommended inside \texttt{gb4e}. \\
+valign=t & Top alignment. \\
+valign=c & Center alignment. \\
+valign=b & Bottom alignment. \\
+yoffset=<dimension> & Manual vertical adjustment. Default: \texttt{0pt}. \\
 \bottomrule
 \end{longtable}
 
-\subsection{Visual spacing}
+\subsection{Grid interpretation of shortcut commands}
 
-The grid renderer uses internal values tuned to resemble classic mode. In particular:
+Inside \texttt{sintaxisgrid}, commands are not executed in the classic sense. They are parsed structurally.
 
-\begin{itemize}
-  \item upper spans are placed with spacing comparable to \verb|liney| and \verb|labsep|;
-  \item lower boxes are placed with depth comparable to \verb|boxd| and \verb|boxsep|;
-  \item simple lower tags use spacing comparable to \verb|tagy|;
-  \item nested levels attempt to reproduce the effect of \verb|nestedgap| and the automatic vertical reservation used in classic mode.
-\end{itemize}
+\begin{longtable}{>{\ttfamily}p{3.3cm}p{9.6cm}}
+\toprule
+Command pattern & Grid interpretation \\
+\midrule
+SES, ST, SEC, PVS, PVC, OS & Upper spans. \\
+OD, OI & Lower underlined labels. \\
+Any starred shortcut, e.g. OD*, MI*, COMP* & Lower open box. \\
+Other unstarred shortcuts, e.g. MD, MI, N, NN, NV, ACL & Lower simple tags. \\
+SA & Structural wrapper; it does not draw its own mark. \\
+\bottomrule
+\end{longtable}
 
-Since grid mode computes one complete box, it does not depend on TikZ \texttt{remember picture} and does not need two compilation passes for placement. Warnings such as \texttt{Missing character: There is no U+000A in font nullfont} may appear in this experimental version and do not prevent PDF generation.
+\subsection{Grid spacing}
 
-\section{Included demo}
+The grid renderer currently uses fixed internal constants tuned to resemble classic \cmd{spanline} and \cmd{openbox}: upper spans approximate \key{liney}/\key{labsep}; lower boxes approximate \key{boxd}/\key{boxsep}; lower tags approximate \key{tagy}; nested lower levels approximate \key{nestedgap} and the classic automatic depth behavior.
 
-The file \texttt{demo-monolithic.tex} tests the monolithic version with \texttt{gb4e}, classic mode, and grid mode. Compile with:
-
+\exampletitle{Nested lower marks in grid mode}
 \begin{lstlisting}
-lualatex demo-monolithic.tex
+\begin{sintaxisgrid}[width=.92\linewidth,valign=base]
+\SA{
+  \SES{\MD{El}\N{estudiante}\MI*{de \MD{la}\N{facultad}}}
+  \PVS{analizó \OD*{\MD{una}\N{oración}\MI*{con \MD{varios}\N{modificadores}}}}
+}
+\end{sintaxisgrid}
 \end{lstlisting}
 
-To check that the single file is self-contained, copy only \texttt{sintaxismark.sty} and \texttt{demo-monolithic.tex} to a temporary directory and compile there.
+\begin{exe}
+\ex
+\begin{sintaxisgrid}[width=.92\linewidth,valign=base]
+\SA{
+  \SES{\MD{El}\N{estudiante}\MI*{de \MD{la}\N{facultad}}}
+  \PVS{analizó \OD*{\MD{una}\N{oración}\MI*{con \MD{varios}\N{modificadores}}}}
+}
+\end{sintaxisgrid}
+\end{exe}
+
+\exampletitle{Forcing a line break by narrowing the grid}
+\begin{lstlisting}
+\begin{sintaxisgrid}[width=8cm,valign=base]
+\SA{
+  \SES{\MD{El}\N{departamento}\MI*{de \MD{unos}\N{monoblocks}\MI*{de \MD{color}\N{bordó}}}}
+  \PVS{quedaba \ACM{abajo}}
+}
+\end{sintaxisgrid}
+\end{lstlisting}
+
+\begin{exe}
+\ex
+\begin{sintaxisgrid}[width=8cm,valign=base]
+\SA{
+  \SES{\MD{El}\N{departamento}\MI*{de \MD{unos}\N{monoblocks}\MI*{de \MD{color}\N{bordó}}}}
+  \PVS{quedaba \ACM{abajo}}
+}
+\end{sintaxisgrid}
+\end{exe}
+
+Warnings such as \texttt{Missing character: There is no U+000A in font nullfont} may appear in this experimental grid version. They are not fatal and do not prevent PDF generation.
+
+\section{Recommended workflow}
+
+\begin{enumerate}
+  \item Use classic mode for short examples and for precise manual control.
+  \item Use \cmd{openboxNB}, \cmd{spanlineNB}, or the manual split helpers when an annotated classical span must not cross a line break.
+  \item Use \cmd{autospanline} or \cmd{autoopenbox} only for plain text.
+  \item Use \texttt{sintaxisgrid} for long examples with nested sintactic markup.
+\end{enumerate}
 
 \section{Version notes}
 
 \begin{itemize}
-  \item \textbf{0.7.2 experimental}: monolithic version. \texttt{sintaxismark.sty} contains classic mode and grid mode with embedded Lua.
-  \item \textbf{0.7.1 experimental}: fixes body capture in \verb|sintaxisgrid|.
-  \item \textbf{0.7.0 experimental}: introduces \verb|sintaxisgrid|.
+  \item \textbf{0.7.2 experimental}: monolithic file. \texttt{sintaxismark.sty} contains classic mode, automatic split helpers, and grid mode with embedded Lua.
+  \item \textbf{0.7.1 experimental}: fixes body capture in \texttt{sintaxisgrid}.
+  \item \textbf{0.7.0 experimental}: introduces \texttt{sintaxisgrid}.
+  \item \textbf{0.6.23}: adds \cmd{autospanline} and \cmd{autoopenbox}.
+  \item \textbf{0.6.22}: adds manual multiline helpers.
+  \item \textbf{0.6.21}: improves nested \cmd{tagbelow} depth handling.
 \end{itemize}
 
 \end{document}
